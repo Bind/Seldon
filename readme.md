@@ -50,16 +50,16 @@ or setup a far off planet to capture pirate planets as they're discovered
 
 
 ## High Level: How this works or Architecture
-there is core loop that runs every 60 seconds. That core loop iterates over the actions array. The actions array is a big list of subroutines to run.  `op.pester()` inserts an action into the actions array. `op.swarm()` inspects the game state and inserts actions based on the best planets for the job.
+There is core loop that runs every 60 seconds. That core loop iterates over the actions array. The actions array is a big list of subroutines to run.  `op.pester()` inserts an action into the actions array. `op.swarm()` inspects the game state and inserts actions based on the best planets for the job.
 
 ## FAQ
 __Q__: What happens if I refresh, will I lose all of the actions in memory?
 
-__A__: Actions are store in localStorage when ever the `op.createAction()` is called. `createAction` runs underneath every subroutine. Seldon reads from localStorage on initialization, so you should not lose your actions on refresh, unless you clear your application state.
+__A__: Actions are stored in localStorage when ever the `op.createAction()` is called. `createAction()` runs underneath every subroutine. Seldon reads from localStorage on initialization, so actions should persist across sessions, unless you clear your application state.
 
-__Q__: Will the core loop continue to run if I loose access to the Seldon reference? 
+__Q__: Will the core loop continue to run if I lose access to the Seldon reference? 
 
-__A__: Yes, the core loop will continue to run, this is important if you overwrite the variable you've set it to. If you initialize a new Seldon instance, the old coreLoop will be stopped and a new one started.  This important for protecting again multiple coreLoops running at the same time. 
+__A__: Yes, the core loop will continue to run, this is important if you overwrite the variable you've set it to. If you initialize a new Seldon instance, the old coreLoop will be stopped and a new one started.  This is important for protecting against multiple core loops running at the same time. 
 
 
   
