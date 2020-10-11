@@ -81,9 +81,31 @@ export function findNearBy(
       planet: p,
     };
   });
+}
+export function findWeapons(
+  planetLocationId,
+  levelLimit = 7,
+  numOfPlanets = 5,
+  percentageSend = 80
+) {
+  const warmWeapons = df
+    .getMyPlanets()
+    .filter((p) => p.planetLevel <= levelLimit)
+    .filter((p) => planetCurrentPercentEnergy(p) > 80);
+  const mapped = warmWeapons.map((p) => {
+    const landingForces = getEnergyArrival(
+      p.locationId,
+      planetLocationId,
+      percentageSend
+    );
+    return {
+      landingForces,
+      planet: p,
+    };
+  });
 
   mapped.sort((a, b) => {
     return b.landingForces - a.landingForces;
   });
-  return mapped.slice(0, numOfPlanets);
+  return mapped.map((p) => p.planet).slice(0, numOfPlanets);
 }

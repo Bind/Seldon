@@ -7,7 +7,7 @@ export default [
   {
     input: "src/core.js",
     output: {
-      name: "Seldon",
+      name: "seldon",
       file: pkg.browser,
       format: "umd",
     },

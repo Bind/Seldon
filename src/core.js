@@ -1,7 +1,14 @@
-import { createPester, pester, explore, createExplore } from "./subroutines";
-import { createSwarm } from "./routines";
+import {
+  createPester,
+  pester,
+  explore,
+  createExplore,
+  delayedMove,
+} from "./subroutines";
+import { createSwarm, createFlood } from "./routines";
 import { areVersionsCompatible } from "./utils";
 import { default as c } from "./constants";
+
 class Manager {
   actions = [];
   intervalId = "";
@@ -14,19 +21,21 @@ class Manager {
       window.__SELDON_CORELOOP__ = [];
     } else {
       //clear out old intervald
-      window.__SELDON_CORELOOP.forEach((id) => clearInterval(id));
+      console.log("KILLING PREVIOUS INTERVALS");
+      window.__SELDON_CORELOOP__.forEach((id) => clearInterval(id));
     }
     if (blob.length > 0) {
       this.actions = blob;
       this.storeActions();
     }
+    this.rehydrate();
     this.intervalId = setInterval(this.coreLoop.bind(this), 60000);
     window.__SELDON_CORELOOP__.push(this.intervalId);
     //aliases
     this.p = this.createPester.bind(this);
     this.s = this.swarm.bind(this);
-    this.a = this.createAid.bind(this);
     this.e = this.createExplore.bind(this);
+    this.f = this.flood.bind(this);
   }
   storeActions() {
     window.localStorage.setItem(
@@ -55,14 +64,22 @@ class Manager {
       console.log(err);
     }
   }
+  checkForOOMThreat() {
+    return (df.getUnconfirmedMoves().length =
+      df.getUnconfirmedUpgrades().length > 4);
+  }
 
   coreLoop() {
-    // this.exploreDirective();
+    if (this.checkForOOMThreat()) {
+      // Prevent OOM bug when executing too many snarks in parallel
+      return;
+    }
     terminal.println("[CORE]: Running Subroutines", 2);
     this.actions.forEach((action) => {
+      df.getUnconfimred;
       try {
         switch (action.type) {
-          case this.c.PESTER:
+          case c.PESTER:
             pester(
               action.payload.yourPlanetLocationId,
               action.payload.opponentsPlanetLocationsId,
@@ -70,7 +87,7 @@ class Manager {
               action.payload.percentageSend
             );
             break;
-          case this.c.FEED:
+          case c.FEED:
             pester(
               action.payload.sourcePlanetLocationId,
               action.payload.syncPlanetLocationsId,
@@ -78,14 +95,18 @@ class Manager {
               action.payload.percentageSend
             );
             break;
-          case this.c.EXPLORE:
+          case c.EXPLORE:
             explore(
               action.payload.ownPlanetId,
               action.payload.percentageRange,
               action.payload.percentageSend,
               action.payload.minLevel
             );
-          case this.c.SUPPLY:
+          case c.DELAYED_MOVE:
+            if (delayedMove(action)) {
+              //send once
+              this.delete(action.id);
+            }
             break;
           default:
             break;
@@ -99,6 +120,15 @@ class Manager {
     this.actions = this.actions.filter((a) => {
       return a.payload.opponentsPlanetLocationsId !== planetId;
     });
+  }
+  flood(planetId, levelLimit = 7, numOfPlanets = 5) {
+    if (this.dead) {
+      console.log("[CORELOOP IS DEAD], flood ignored");
+      return;
+    }
+    createFlood(planetId, levelLimit, numOfPlanets).forEach((a) =>
+      this.createAction(a)
+    );
   }
   swarm(planetId, maxDistance = 5000, levelLimit = 5, numOfPlanets = 5) {
     if (this.dead) {
@@ -197,7 +227,10 @@ class Manager {
           this.actions = actions;
         }
       }
-    } catch (err) {}
+    } catch (err) {
+      console.err("Issue Rehydrating Actions");
+      throw err;
+    }
   }
 }
 export default Manager;

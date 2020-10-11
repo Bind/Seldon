@@ -1,7 +1,7 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
   typeof define === 'function' && define.amd ? define(factory) :
-  (global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.Seldon = factory());
+  (global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.seldon = factory());
 }(this, (function () { 'use strict';
 
   function checkNumInboundVoyages(planetId, from = "") {
@@ -83,11 +83,33 @@
         planet: p,
       };
     });
+  }
+  function findWeapons(
+    planetLocationId,
+    levelLimit = 7,
+    numOfPlanets = 5,
+    percentageSend = 80
+  ) {
+    const warmWeapons = df
+      .getMyPlanets()
+      .filter((p) => p.planetLevel <= levelLimit)
+      .filter((p) => planetCurrentPercentEnergy(p) > 80);
+    const mapped = warmWeapons.map((p) => {
+      const landingForces = getEnergyArrival(
+        p.locationId,
+        planetLocationId,
+        percentageSend
+      );
+      return {
+        landingForces,
+        planet: p,
+      };
+    });
 
     mapped.sort((a, b) => {
       return b.landingForces - a.landingForces;
     });
-    return mapped.slice(0, numOfPlanets);
+    return mapped.map((p) => p.planet).slice(0, numOfPlanets);
   }
 
   const PIRATES = "0x0000000000000000000000000000000000000000";
@@ -97,6 +119,7 @@
     FEED: "AID",
     SUPPLY: "SUPPLY",
     EXPLORE: "EXPLORE",
+    DELAYED_MOVE: "DELAYED_MOVE",
     PIRATES,
   };
 
@@ -232,6 +255,47 @@
     };
   }
 
+  function delayedMove(action) {
+    const { srcId, syncId, sendAt, percentageSend } = action.payload;
+
+    const match = df.getMyPlanets().filter((t) => t.locationId == srcId);
+    if (match.length == 0) {
+      //Should delete self on this case
+      return;
+    }
+    const source = match[0];
+    if (checkNumInboundVoyages(syncId) >= 7) {
+      //Too many inbound
+      return;
+    }
+
+    const FORCES = Math.floor((source.energyCap * percentageSend) / 100);
+
+    if (sendAt < new Date().getTime()) {
+      console.log("[DELAYED]: LAUNCHING ATTACK");
+      terminal.println("[DELAYED]: LAUNCHING ATTACK", 4);
+
+      //send attack
+      terminal.jsShell(`df.move('${srcId}', '${syncId}', ${FORCES}, ${0})`);
+      df.move(srcId, syncId, FORCES, 0);
+      return true;
+    }
+    return false;
+  }
+
+  function createDelayedMove(srcId, syncId, sendAt, percentageSend = 80) {
+    return {
+      type: c.DELAYED_MOVE,
+      id: `${c.DELAYED_MOVE}-${srcId}-${syncId}`,
+      payload: {
+        srcId,
+        syncId,
+        sendAt,
+        percentageSend,
+      },
+    };
+  }
+
   function createSwarm(
     planetId,
     maxDistance = 5000,
@@ -243,6 +307,39 @@
       return createPester(p.planet.locationId, planetId, 75, 40, {
         tag: "SWARM",
       });
+    });
+  }
+
+  function secondsToMs(s) {
+    return s * 1000;
+  }
+
+  function createFlood(
+    locationId,
+    levelLimit = 7,
+    numOfPlanets = 5
+  ) {
+    const weapons = findWeapons(locationId, levelLimit, numOfPlanets, 80);
+    //Sort by who will take longest to land
+
+    weapons.sort(
+      (a, b) =>
+        df.getTimeForMove(b.locationId, locationId) -
+        df.getTimeForMove(a.locationId, locationId)
+    );
+    const ETA_MS =
+      new Date().getTime() +
+      secondsToMs(df.getTimeForMove(weapons[0].locationId, locationId)) +
+      secondsToMs(10);
+    //Add 10 seconds for processing
+    return weapons.map((p) => {
+      return createDelayedMove(
+        p.locationId,
+        locationId,
+        Math.floor(
+          ETA_MS - secondsToMs(df.getTimeForMove(p.locationId, locationId))
+        )
+      );
     });
   }
 
@@ -281,19 +378,21 @@
         window.__SELDON_CORELOOP__ = [];
       } else {
         //clear out old intervald
-        window.__SELDON_CORELOOP.forEach((id) => clearInterval(id));
+        console.log("KILLING PREVIOUS INTERVALS");
+        window.__SELDON_CORELOOP__.forEach((id) => clearInterval(id));
       }
       if (blob.length > 0) {
         this.actions = blob;
         this.storeActions();
       }
+      this.rehydrate();
       this.intervalId = setInterval(this.coreLoop.bind(this), 60000);
       window.__SELDON_CORELOOP__.push(this.intervalId);
       //aliases
       this.p = this.createPester.bind(this);
       this.s = this.swarm.bind(this);
-      this.a = this.createAid.bind(this);
       this.e = this.createExplore.bind(this);
+      this.f = this.flood.bind(this);
     }
     storeActions() {
       window.localStorage.setItem(
@@ -322,14 +421,22 @@
         console.log(err);
       }
     }
+    checkForOOMThreat() {
+      return (df.getUnconfirmedMoves().length =
+        df.getUnconfirmedUpgrades().length > 4);
+    }
 
     coreLoop() {
-      // this.exploreDirective();
+      if (this.checkForOOMThreat()) {
+        // Prevent OOM bug when executing too many snarks in parallel
+        return;
+      }
       terminal.println("[CORE]: Running Subroutines", 2);
       this.actions.forEach((action) => {
+        df.getUnconfimred;
         try {
           switch (action.type) {
-            case this.c.PESTER:
+            case c.PESTER:
               pester(
                 action.payload.yourPlanetLocationId,
                 action.payload.opponentsPlanetLocationsId,
@@ -337,7 +444,7 @@
                 action.payload.percentageSend
               );
               break;
-            case this.c.FEED:
+            case c.FEED:
               pester(
                 action.payload.sourcePlanetLocationId,
                 action.payload.syncPlanetLocationsId,
@@ -345,14 +452,18 @@
                 action.payload.percentageSend
               );
               break;
-            case this.c.EXPLORE:
+            case c.EXPLORE:
               explore(
                 action.payload.ownPlanetId,
                 action.payload.percentageRange,
                 action.payload.percentageSend,
                 action.payload.minLevel
               );
-            case this.c.SUPPLY:
+            case c.DELAYED_MOVE:
+              if (delayedMove(action)) {
+                //send once
+                this.delete(action.id);
+              }
               break;
             default:
               break;
@@ -366,6 +477,15 @@
       this.actions = this.actions.filter((a) => {
         return a.payload.opponentsPlanetLocationsId !== planetId;
       });
+    }
+    flood(planetId, levelLimit = 7, numOfPlanets = 5) {
+      if (this.dead) {
+        console.log("[CORELOOP IS DEAD], flood ignored");
+        return;
+      }
+      createFlood(planetId, levelLimit, numOfPlanets).forEach((a) =>
+        this.createAction(a)
+      );
     }
     swarm(planetId, maxDistance = 5000, levelLimit = 5, numOfPlanets = 5) {
       if (this.dead) {
@@ -464,7 +584,10 @@
             this.actions = actions;
           }
         }
-      } catch (err) {}
+      } catch (err) {
+        console.err("Issue Rehydrating Actions");
+        throw err;
+      }
     }
   }
 
