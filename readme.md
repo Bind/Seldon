@@ -44,7 +44,7 @@ or launch a large coordinated attack
 
 `op.flood(theirLargePlanetId)`
 
-or setup a far off planet to capture pirate planets as their discovered
+or setup a far off planet to capture pirate planets as they're discovered
 
 `op.explore(yourPlanetId)`
 
