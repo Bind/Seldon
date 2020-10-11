@@ -1,5 +1,5 @@
 {
-  "name": "df-bot",
+  "name": "seldon",
   "version": "1.0.0",
   "license": "MIT",
   "main": "dist/seldon.cjs.js",
