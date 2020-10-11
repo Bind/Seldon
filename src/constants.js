@@ -1,5 +1,5 @@
 export const PIRATES = "0x0000000000000000000000000000000000000000";
-export default c = {
+const c = {
   PESTER: "PESTER",
   AID: "AID",
   FEED: "AID",
@@ -7,3 +7,4 @@ export default c = {
   EXPLORE: "EXPLORE",
   PIRATES,
 };
+export default c;

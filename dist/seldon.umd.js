@@ -91,7 +91,7 @@
   }
 
   const PIRATES = "0x0000000000000000000000000000000000000000";
-  var c$1 = c = {
+  const c = {
     PESTER: "PESTER",
     AID: "AID",
     FEED: "AID",
@@ -154,7 +154,7 @@
   ) {
     return {
       id: `[PESTER]-${yourPlanetLocationId}-${opponentsPlanetLocationsId}-${percentageTrigger}-${percentageSend}`,
-      type: c$1.PESTER,
+      type: c.PESTER,
       payload: {
         srcId,
         syncId,
@@ -222,7 +222,7 @@
   ) {
     return {
       id: `[EXPLORE]-${ownPlanetId}-${percentageRange}-${percentageSend}-${minLevel}`,
-      type: c$1.EXPLORE,
+      type: c.EXPLORE,
       payload: {
         srcId,
         percentageRange,
