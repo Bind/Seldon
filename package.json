@@ -4,7 +4,7 @@
   "license": "MIT",
   "main": "dist/seldon.cjs.js",
   "module": "dist/seldon.esm.js",
-  "browser": "dist/seldon.umd.mjs",
+  "browser": "dist/seldon.umd.js",
   "dependencies": {
     "@rollup/plugin-commonjs": "^15.1.0",
     "@rollup/plugin-node-resolve": "^7.0.0",
