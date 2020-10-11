@@ -1,7 +1,7 @@
 import { createPester, pester, explore, createExplore } from "./subroutines";
 import { createSwarm } from "./routines";
 import { areVersionsCompatible } from "./utils";
-
+import { default as c } from "./constants";
 class Manager {
   actions = [];
   intervalId = "";
