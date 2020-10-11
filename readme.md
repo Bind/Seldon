@@ -1,4 +1,4 @@
-# Seldon: [https://github.com/darkforest-eth/client/](Dark Forest Eth bot)
+# Seldon: A set of scripts for [Dark Forest Eth](https://github.com/darkforest-eth/client/)
 
 Things the bot can currently and will do
 
