@@ -33,8 +33,10 @@ class Manager {
     window.__SELDON_CORELOOP__.push(this.intervalId);
     //aliases
     this.p = this.createPester.bind(this);
+    this.pester = this.createPester.bind(this);
     this.s = this.swarm.bind(this);
     this.e = this.createExplore.bind(this);
+    this.explore = this.createExplore.bind(this);
     this.f = this.flood.bind(this);
   }
   storeActions() {

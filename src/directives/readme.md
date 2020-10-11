@@ -1,1 +1,1 @@
-### Directives are High Level Orders and will orchestrate routines to acheive their goal
+### Directives are High Level Orders and will orchestrate routines to acheive their

@@ -1,7 +1,7 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
   typeof define === 'function' && define.amd ? define(factory) :
-  (global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.seldon = factory());
+  (global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.Seldon = factory());
 }(this, (function () { 'use strict';
 
   function checkNumInboundVoyages(planetId, from = "") {
@@ -244,7 +244,7 @@
     minLevel = 3
   ) {
     return {
-      id: `[EXPLORE]-${ownPlanetId}-${percentageRange}-${percentageSend}-${minLevel}`,
+      id: `[EXPLORE]-${srcId}-${percentageRange}-${percentageSend}-${minLevel}`,
       type: c.EXPLORE,
       payload: {
         srcId,
@@ -390,8 +390,10 @@
       window.__SELDON_CORELOOP__.push(this.intervalId);
       //aliases
       this.p = this.createPester.bind(this);
+      this.pester = this.createPester.bind(this);
       this.s = this.swarm.bind(this);
       this.e = this.createExplore.bind(this);
+      this.explore = this.createExplore.bind(this);
       this.f = this.flood.bind(this);
     }
     storeActions() {

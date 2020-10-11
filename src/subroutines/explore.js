@@ -60,7 +60,7 @@ export function createExplore(
   minLevel = 3
 ) {
   return {
-    id: `[EXPLORE]-${ownPlanetId}-${percentageRange}-${percentageSend}-${minLevel}`,
+    id: `[EXPLORE]-${srcId}-${percentageRange}-${percentageSend}-${minLevel}`,
     type: c.EXPLORE,
     payload: {
       srcId,
