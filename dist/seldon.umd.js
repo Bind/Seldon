@@ -90,6 +90,16 @@
     return mapped.slice(0, numOfPlanets);
   }
 
+  const PIRATES = "0x0000000000000000000000000000000000000000";
+  var c$1 = c = {
+    PESTER: "PESTER",
+    AID: "AID",
+    FEED: "AID",
+    SUPPLY: "SUPPLY",
+    EXPLORE: "EXPLORE",
+    PIRATES,
+  };
+
   // A recurring attack
 
   function pester(
@@ -144,7 +154,7 @@
   ) {
     return {
       id: `[PESTER]-${yourPlanetLocationId}-${opponentsPlanetLocationsId}-${percentageTrigger}-${percentageSend}`,
-      type: this.c.PESTER,
+      type: c$1.PESTER,
       payload: {
         srcId,
         syncId,
@@ -154,16 +164,6 @@
       meta,
     };
   }
-
-  const PIRATES = "0x0000000000000000000000000000000000000000";
-  var c$1 = c = {
-    PESTER: "PESTER",
-    AID: "AID",
-    FEED: "AID",
-    SUPPLY: "SUPPLY",
-    EXPLORE: "EXPLORE",
-    PIRATES,
-  };
 
   function explore(
     srcId,

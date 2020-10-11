@@ -1,5 +1,6 @@
 // A recurring attack
 import { checkNumInboundVoyages } from "../utils/planet";
+import { default as c } from "../constants";
 
 export default function pester(
   yourPlanetLocationId,
@@ -53,7 +54,7 @@ export function createPester(
 ) {
   return {
     id: `[PESTER]-${yourPlanetLocationId}-${opponentsPlanetLocationsId}-${percentageTrigger}-${percentageSend}`,
-    type: this.c.PESTER,
+    type: c.PESTER,
     payload: {
       srcId,
       syncId,
