@@ -226,11 +226,11 @@ class Manager {
         }
         const payload = JSON.parse(raw);
         if (areVersionsCompatible(this.version, payload?.version)) {
-          this.actions = actions;
+          this.actions = payload.actions;
         }
       }
     } catch (err) {
-      console.err("Issue Rehydrating Actions");
+      console.error("Issue Rehydrating Actions");
       throw err;
     }
   }

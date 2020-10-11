@@ -18,5 +18,7 @@ export function areVersionsCompatible(newVersion, oldVersion) {
   } else if (newV.patch !== oldV.patch) {
     //Should not effect actions schema
     return true;
+  } else {
+    return true;
   }
 }

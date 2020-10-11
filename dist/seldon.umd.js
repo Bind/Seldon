@@ -363,6 +363,8 @@
     } else if (newV.patch !== oldV.patch) {
       //Should not effect actions schema
       return true;
+    } else {
+      return true;
     }
   }
 
@@ -583,11 +585,11 @@
           }
           const payload = JSON.parse(raw);
           if (areVersionsCompatible(this.version, payload?.version)) {
-            this.actions = actions;
+            this.actions = payload.actions;
           }
         }
       } catch (err) {
-        console.err("Issue Rehydrating Actions");
+        console.error("Issue Rehydrating Actions");
         throw err;
       }
     }

@@ -109,3 +109,11 @@ export function findWeapons(
   });
   return mapped.map((p) => p.planet).slice(0, numOfPlanets);
 }
+
+export function modelEnergyGrowth(energy, energyGrowth, duration = 10) {
+  const denom =
+    Math.exp((-4 * energyGrowth * duration) / energyCap) *
+      (energyCap / energy - 1) +
+    1;
+  return energyCap / denom;
+}
