@@ -88,7 +88,8 @@
     planetLocationId,
     levelLimit = 7,
     numOfPlanets = 5,
-    percentageSend = 80
+    percentageSend = 80,
+    maxDist = 1500
   ) {
     const warmWeapons = df
       .getMyPlanets()
@@ -269,7 +270,7 @@
       return;
     }
 
-    const FORCES = Math.floor((source.energyCap * percentageSend) / 100);
+    const FORCES = Math.floor((source.energy * percentageSend) / 100);
 
     if (sendAt < new Date().getTime()) {
       console.log("[DELAYED]: LAUNCHING ATTACK");
@@ -319,7 +320,7 @@
     levelLimit = 7,
     numOfPlanets = 5
   ) {
-    const weapons = findWeapons(locationId, levelLimit, numOfPlanets, 80);
+    const weapons = findWeapons(locationId, levelLimit, numOfPlanets, 80, 5000);
     //Sort by who will take longest to land
 
     weapons.sort(
@@ -341,6 +342,38 @@
         )
       );
     });
+  }
+
+  function createOverload(
+    srcId,
+    targetId,
+    levelLimit = 4,
+    numOfPlanets = 5
+  ) {
+    const weapons = findWeapons(srcId, levelLimit, numOfPlanets, 80, 2000);
+    //Sort by who will take longest to land
+    weapons.sort(
+      (a, b) =>
+        df.getTimeForMove(b.locationId, targetId) -
+        df.getTimeForMove(a.locationId, targetId)
+    );
+
+    const ETA_MS =
+      new Date().getTime() +
+      secondsToMs(df.getTimeForMove(weapons[0].locationId, targetId)) +
+      secondsToMs(10);
+    //Add 10 seconds for processing
+    const juice = weapons.map((p) => {
+      return createDelayedMove(
+        p.locationId,
+        srcId,
+        Math.floor(
+          ETA_MS - secondsToMs(df.getTimeForMove(p.locationId, targetId))
+        )
+      );
+    });
+    const launch = createDelayedMove(srcId, targetId, ETA_MS + secondsToMs(10));
+    return [launch, ...juice];
   }
 
   function parseVersionString(string) {
@@ -437,7 +470,6 @@
       }
       terminal.println("[CORE]: Running Subroutines", 2);
       this.actions.forEach((action) => {
-        df.getUnconfimred;
         try {
           switch (action.type) {
             case c.PESTER:
@@ -473,6 +505,7 @@
               break;
           }
         } catch (error) {
+          console.error(action);
           console.error(error);
         }
       });
@@ -491,6 +524,16 @@
         this.createAction(a)
       );
     }
+    overload(srcId, targetId, levelLimit = 4, numOfPlanets = 5) {
+      if (this.dead) {
+        console.log("[CORELOOP IS DEAD], flood ignored");
+        return;
+      }
+      createOverload(srcId, targetId, levelLimit, numOfPlanets).forEach((a) =>
+        this.createAction(a)
+      );
+    }
+
     swarm(planetId, maxDistance = 5000, levelLimit = 5, numOfPlanets = 5) {
       if (this.dead) {
         console.log("[CORELOOP IS DEAD], swarm ignored");

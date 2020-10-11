@@ -14,7 +14,7 @@ export default function delayedMove(action) {
     return;
   }
 
-  const FORCES = Math.floor((source.energyCap * percentageSend) / 100);
+  const FORCES = Math.floor((source.energy * percentageSend) / 100);
 
   if (sendAt < new Date().getTime()) {
     console.log("[DELAYED]: LAUNCHING ATTACK");

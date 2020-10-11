@@ -5,7 +5,7 @@ import {
   createExplore,
   delayedMove,
 } from "./subroutines";
-import { createSwarm, createFlood } from "./routines";
+import { createSwarm, createFlood, createOverload } from "./routines";
 import { areVersionsCompatible } from "./utils";
 import { default as c } from "./constants";
 
@@ -78,7 +78,6 @@ class Manager {
     }
     terminal.println("[CORE]: Running Subroutines", 2);
     this.actions.forEach((action) => {
-      df.getUnconfimred;
       try {
         switch (action.type) {
           case c.PESTER:
@@ -114,6 +113,7 @@ class Manager {
             break;
         }
       } catch (error) {
+        console.error(action);
         console.error(error);
       }
     });
@@ -132,6 +132,16 @@ class Manager {
       this.createAction(a)
     );
   }
+  overload(srcId, targetId, levelLimit = 4, numOfPlanets = 5) {
+    if (this.dead) {
+      console.log("[CORELOOP IS DEAD], flood ignored");
+      return;
+    }
+    createOverload(srcId, targetId, levelLimit, numOfPlanets).forEach((a) =>
+      this.createAction(a)
+    );
+  }
+
   swarm(planetId, maxDistance = 5000, levelLimit = 5, numOfPlanets = 5) {
     if (this.dead) {
       console.log("[CORELOOP IS DEAD], swarm ignored");

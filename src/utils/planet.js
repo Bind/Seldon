@@ -86,7 +86,8 @@ export function findWeapons(
   planetLocationId,
   levelLimit = 7,
   numOfPlanets = 5,
-  percentageSend = 80
+  percentageSend = 80,
+  maxDist = 1500
 ) {
   const warmWeapons = df
     .getMyPlanets()
