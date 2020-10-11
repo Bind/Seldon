@@ -1,0 +1,21 @@
+{
+  "name": "df-bot",
+  "version": "1.0.0",
+  "license": "MIT",
+  "main": "dist/seldon.cjs.js",
+  "module": "dist/seldon.esm.js",
+  "browser": "dist/seldon.umd.js",
+  "dependencies": {
+    "@rollup/plugin-commonjs": "^15.1.0",
+    "@rollup/plugin-node-resolve": "^7.0.0",
+    "rollup": "^2.29.0"
+  },
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
+    "test": "node test/test.js",
+    "pretest": "npm run build"
+  }, "files": [
+    "dist"
+  ]
+}

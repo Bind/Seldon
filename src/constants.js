@@ -1,0 +1,9 @@
+export const PIRATES = "0x0000000000000000000000000000000000000000";
+export default c = {
+  PESTER: "PESTER",
+  AID: "AID",
+  FEED: "AID",
+  SUPPLY: "SUPPLY",
+  EXPLORE: "EXPLORE",
+  PIRATES,
+};
