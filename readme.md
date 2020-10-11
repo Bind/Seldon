@@ -2,7 +2,7 @@
 
 Things the bot can currently and will do
 
-  __Directives__: Strategic use of Routines
+  __Directives__: Strategic use of routines
    - __sprawl[WIP]__: non-top 15 planets with no set subroutines should explore
    - __score[WIP]__: Move silver to top 15 planets and upgrade them 
   
@@ -10,7 +10,7 @@ Things the bot can currently and will do
  - __swarm__: continous small uncoordinated attacks
  - __flood__: large coordinated one-off attack to land in close succession
   
-  __Subroutines__: atomic action for one planet 
+  __Subroutines__: atomic actions for one planet 
   - __pester__: a small recurring attack
   - __explore__: find and take medium sized pirate planets
   - __delayedMove__: launch an attack after a certain time
@@ -26,10 +26,11 @@ Feel free to fork this repo and review the code so you can be sure their are no 
 
 
 # Usage & Setup
-- Copy and Paste /dist/seldon.umd.js into your chrome devtools. 
-- let op = new Seldon()
+Copy and Paste [/dist/seldon.umd.js](/dist/seldon.umd.js) into your chrome devtools. 
+
+`let op = new Seldon()`
   
-# Things todo
+# Things Mess Around With
 
 Annoy a large enemy planet with a smaller nearby planet
 
