@@ -30,7 +30,7 @@ Copy and Paste [/dist/seldon.umd.js](/dist/seldon.umd.js) into your chrome devto
 
 `let op = new Seldon()`
   
-# Things Mess Around With
+# Things To Mess Around With
 
 Annoy a large enemy planet with a smaller nearby planet
 
