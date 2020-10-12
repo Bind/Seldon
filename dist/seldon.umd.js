@@ -112,6 +112,9 @@
     });
     return mapped.map((p) => p.planet).slice(0, numOfPlanets);
   }
+  function planetIsRevealed(locationId) {
+    return !!planetHelper.getLocationOfPlanet(planetId);
+  }
 
   const PIRATES = "0x0000000000000000000000000000000000000000";
   const c = {
@@ -200,6 +203,7 @@
       .getPlanetsInRange(srcId, percentageRange)
       .filter((p) => p.planetLevel >= minLevel)
       .filter((p) => p.owner == pirates)
+      .filter((p) => planetIsRevealed(p.locationId))
       .filter((p) => checkNumInboundVoyages(p.planetId, explorer.owner) < 1)
       //Energy Needed to Take
       .filter(

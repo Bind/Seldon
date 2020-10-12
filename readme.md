@@ -20,6 +20,8 @@ Things the bot can currently and will do
 
 
 # Warning/Disclaimer
+This is Alpha software that could crash your game if abused to heavily.
+
 You will need to copy this script into your browser console. This is scary and should not be taken lightly. Scripts run in your browser console have access to your secret key and wallet. I could take all of the money in your wallet. The whole bot is about 500 loc with no external dependencies aside from the bundler. You or someone you trust should be able to review it.
 
 Feel free to fork this repo and review the code so you can be sure there are no shenanigans. 

@@ -2,6 +2,7 @@ import {
   checkNumInboundVoyages,
   planetPercentEnergy,
   planetCurrentPercentEnergy,
+  planetIsRevealed,
 } from "../utils/planet";
 import { default as c } from "../constants";
 export default function explore(
@@ -15,6 +16,7 @@ export default function explore(
     .getPlanetsInRange(srcId, percentageRange)
     .filter((p) => p.planetLevel >= minLevel)
     .filter((p) => p.owner == pirates)
+    .filter((p) => planetIsRevealed(p.locationId))
     .filter((p) => checkNumInboundVoyages(p.planetId, explorer.owner) < 1)
     //Energy Needed to Take
     .filter(

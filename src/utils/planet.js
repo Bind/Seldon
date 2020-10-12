@@ -110,6 +110,9 @@ export function findWeapons(
   });
   return mapped.map((p) => p.planet).slice(0, numOfPlanets);
 }
+export function planetIsRevealed(locationId) {
+  return !!planetHelper.getLocationOfPlanet(planetId);
+}
 
 export function modelEnergyGrowth(energy, energyGrowth, duration = 10) {
   const denom =
