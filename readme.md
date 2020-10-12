@@ -9,7 +9,8 @@ Things the bot can currently and will do
   __Routines__: Groups of subroutines for many planets
  - __swarm__: continous small uncoordinated attacks
  - __flood__: large coordinated one-off attack to land in close succession
-  
+ - __overload__: funnel nearby energy into an all out attack from one planet
+
   __Subroutines__: atomic actions for one planet 
   - __pester__: a small recurring attack
   - __explore__: find and take medium sized pirate planets
@@ -42,9 +43,13 @@ or set up a lot of pesters quickly
 
 `op.swarm(theirLargePlanetId)`
 
-or launch a large coordinated attack
+or launch a large coordinated attack from all over the map
 
 `op.flood(theirLargePlanetId)`
+
+or pull in nearby energy and launch an all out attack from one planet
+
+`op.overload(yourLargePlanetId, theirLargePlanetId)`
 
 or setup a far off planet to capture pirate planets as they're discovered
 
