@@ -4,6 +4,7 @@ import {
   explore,
   createExplore,
   delayedMove,
+  chainedMove,
 } from "./subroutines";
 import { createSwarm, createFlood, createOverload } from "./routines";
 import { areVersionsCompatible } from "./utils";
@@ -105,6 +106,11 @@ class Manager {
             );
           case c.DELAYED_MOVE:
             if (delayedMove(action)) {
+              //send once
+              this.delete(action.id);
+            }
+          case c.CHAINED_MOVE:
+            if (chainedMove(action)) {
               //send once
               this.delete(action.id);
             }

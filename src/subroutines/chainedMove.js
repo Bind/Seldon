@@ -1,7 +1,16 @@
 import { default as c } from "../constants";
-import { checkNumInboundVoyages } from "../utils/planet";
-export default function delayedMove(action) {
-  const { srcId, syncId, sendAt, percentageSend } = action.payload;
+import { checkNumInboundVoyages, waitingForPassengers } from "../utils/planet";
+import { within5Minutes } from "../utils/time";
+
+export default function chainedMove(action) {
+  const {
+    srcId,
+    syncId,
+    passengers,
+    departure,
+    percentageSend,
+    createdAt,
+  } = action.payload;
 
   const match = df.getMyPlanets().filter((t) => t.locationId == srcId);
   if (match.length == 0) {
@@ -15,28 +24,40 @@ export default function delayedMove(action) {
   }
 
   const FORCES = Math.floor((source.energy * percentageSend) / 100);
-  console.log(sendAt);
-  if (sendAt < new Date().getTime()) {
+
+  if (
+    !within5Minutes(createdAt, new Date().getTime()) &&
+    (!waitingForPassengers(srcId, passengers) ||
+      departure < new Date().getTime())
+  ) {
     console.log("[DELAYED]: LAUNCHING ATTACK");
     terminal.println("[DELAYED]: LAUNCHING ATTACK", 4);
 
     //send attack
     terminal.jsShell(`df.move('${srcId}', '${syncId}', ${FORCES}, ${0})`);
     df.move(srcId, syncId, FORCES, 0);
-    return false;
+    return true;
   }
   return false;
 }
 
-export function createDelayedMove(srcId, syncId, sendAt, percentageSend = 80) {
+export function createChainedMove(
+  srcId,
+  syncId,
+  passengers,
+  departure,
+  percentageSend = 80
+) {
   return {
-    type: c.DELAYED_MOVE,
-    id: `${c.DELAYED_MOVE}-${srcId}-${syncId}`,
+    type: c.CHAINED_MOVE,
+    id: `${c.CHAINED_MOVE}-${srcId}-${syncId}`,
     payload: {
       srcId,
       syncId,
-      sendAt,
+      passengers,
+      departure,
       percentageSend,
+      createdAt: new Date().getTime(),
     },
   };
 }

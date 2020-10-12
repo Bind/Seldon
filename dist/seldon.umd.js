@@ -89,12 +89,13 @@
     levelLimit = 7,
     numOfPlanets = 5,
     percentageSend = 80,
-    maxDist = 1500
+    maxTime = 30 * 60
   ) {
     const warmWeapons = df
       .getMyPlanets()
       .filter((p) => p.planetLevel <= levelLimit)
-      .filter((p) => planetCurrentPercentEnergy(p) > 80);
+      .filter((p) => planetCurrentPercentEnergy(p) > 80)
+      .filter((p) => df.getTimeForMove(p.locationId, planetLocationId) < maxTime);
     const mapped = warmWeapons.map((p) => {
       const landingForces = getEnergyArrival(
         p.locationId,
@@ -112,8 +113,18 @@
     });
     return mapped.map((p) => p.planet).slice(0, numOfPlanets);
   }
-  function planetIsRevealed(locationId) {
+  function planetIsRevealed(planetId) {
     return !!planetHelper.getLocationOfPlanet(planetId);
+  }
+  function waitingForPassengers(locationId, passengersArray) {
+    const arrivalIds = df.planetHelper.planetArrivalIds[locationId];
+    return (
+      arrivalIds
+        .map((a) => df.planetHelper.arrivals[a])
+        .filter((a) => a.arrivalData.player == df.account)
+        .filter((a) => passengersArray.includes(a.arrivalData.fromPlanet))
+        .length > 0
+    );
   }
 
   const PIRATES = "0x0000000000000000000000000000000000000000";
@@ -124,6 +135,7 @@
     SUPPLY: "SUPPLY",
     EXPLORE: "EXPLORE",
     DELAYED_MOVE: "DELAYED_MOVE",
+    CHAINED_MOVE: "CHAINED_MOVE",
     PIRATES,
   };
 
@@ -275,7 +287,7 @@
     }
 
     const FORCES = Math.floor((source.energy * percentageSend) / 100);
-
+    console.log(sendAt);
     if (sendAt < new Date().getTime()) {
       console.log("[DELAYED]: LAUNCHING ATTACK");
       terminal.println("[DELAYED]: LAUNCHING ATTACK", 4);
@@ -283,7 +295,7 @@
       //send attack
       terminal.jsShell(`df.move('${srcId}', '${syncId}', ${FORCES}, ${0})`);
       df.move(srcId, syncId, FORCES, 0);
-      return true;
+      return false;
     }
     return false;
   }
@@ -297,6 +309,74 @@
         syncId,
         sendAt,
         percentageSend,
+      },
+    };
+  }
+
+  function secondsToMs(s) {
+    return s * 1000;
+  }
+
+  function within5Minutes(before, now) {
+    return (before - now) / 1000 / 60 < 5;
+  }
+
+  function chainedMove(action) {
+    const {
+      srcId,
+      syncId,
+      passengers,
+      departure,
+      percentageSend,
+      createdAt,
+    } = action.payload;
+
+    const match = df.getMyPlanets().filter((t) => t.locationId == srcId);
+    if (match.length == 0) {
+      //Should delete self on this case
+      return;
+    }
+    const source = match[0];
+    if (checkNumInboundVoyages(syncId) >= 7) {
+      //Too many inbound
+      return;
+    }
+
+    const FORCES = Math.floor((source.energy * percentageSend) / 100);
+
+    if (
+      !within5Minutes(createdAt, new Date().getTime()) &&
+      (!waitingForPassengers(srcId, passengers) ||
+        departure < new Date().getTime())
+    ) {
+      console.log("[DELAYED]: LAUNCHING ATTACK");
+      terminal.println("[DELAYED]: LAUNCHING ATTACK", 4);
+
+      //send attack
+      terminal.jsShell(`df.move('${srcId}', '${syncId}', ${FORCES}, ${0})`);
+      df.move(srcId, syncId, FORCES, 0);
+      return true;
+    }
+    return false;
+  }
+
+  function createChainedMove(
+    srcId,
+    syncId,
+    passengers,
+    departure,
+    percentageSend = 80
+  ) {
+    return {
+      type: c.CHAINED_MOVE,
+      id: `${c.CHAINED_MOVE}-${srcId}-${syncId}`,
+      payload: {
+        srcId,
+        syncId,
+        passengers,
+        departure,
+        percentageSend,
+        createdAt: new Date().getTime(),
       },
     };
   }
@@ -315,16 +395,18 @@
     });
   }
 
-  function secondsToMs(s) {
-    return s * 1000;
-  }
-
   function createFlood(
     locationId,
     levelLimit = 7,
     numOfPlanets = 5
   ) {
-    const weapons = findWeapons(locationId, levelLimit, numOfPlanets, 80, 5000);
+    const weapons = findWeapons(
+      locationId,
+      levelLimit,
+      numOfPlanets,
+      80,
+      60 * 60
+    );
     //Sort by who will take longest to land
 
     weapons.sort(
@@ -354,7 +436,8 @@
     levelLimit = 4,
     numOfPlanets = 5
   ) {
-    const weapons = findWeapons(srcId, levelLimit, numOfPlanets, 80, 2000);
+    //Change Find Weapons to go off of travel time instead of distance
+    const weapons = findWeapons(srcId, levelLimit, numOfPlanets, 80, 2500);
     //Sort by who will take longest to land
     weapons.sort(
       (a, b) =>
@@ -362,10 +445,21 @@
         df.getTimeForMove(a.locationId, srcId)
     );
 
+    weapons.forEach((w) => {
+      console.log(
+        `${w.locationId} will arrive at`,
+        new Date(
+          new Date().getTime() +
+            secondsToMs(df.getTimeForMove(w.locationId, srcId))
+        )
+      );
+    });
+
     const ETA_MS =
       new Date().getTime() +
       secondsToMs(df.getTimeForMove(weapons[0].locationId, srcId)) +
       secondsToMs(10);
+    console.log("Expected arrival of reinforcements", new Date(ETA_MS));
     //Add 10 seconds for processing
     const juice = weapons.map((p) => {
       return createDelayedMove(
@@ -374,7 +468,12 @@
         Math.floor(ETA_MS - secondsToMs(df.getTimeForMove(p.locationId, srcId)))
       );
     });
-    const launch = createDelayedMove(srcId, targetId, ETA_MS + secondsToMs(10));
+    const launch = createChainedMove(
+      srcId,
+      targetId,
+      juice.map((a) => a.payload.srcId),
+      ETA_MS + secondsToMs(3 * 60)
+    );
     return [launch, ...juice];
   }
 
@@ -499,6 +598,11 @@
               );
             case c.DELAYED_MOVE:
               if (delayedMove(action)) {
+                //send once
+                this.delete(action.id);
+              }
+            case c.CHAINED_MOVE:
+              if (chainedMove(action)) {
                 //send once
                 this.delete(action.id);
               }

@@ -7,7 +7,13 @@ export default function createFlood(
   levelLimit = 7,
   numOfPlanets = 5
 ) {
-  const weapons = findWeapons(locationId, levelLimit, numOfPlanets, 80, 5000);
+  const weapons = findWeapons(
+    locationId,
+    levelLimit,
+    numOfPlanets,
+    80,
+    60 * 60
+  );
   //Sort by who will take longest to land
 
   weapons.sort(

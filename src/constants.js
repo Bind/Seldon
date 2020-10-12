@@ -6,6 +6,7 @@ const c = {
   SUPPLY: "SUPPLY",
   EXPLORE: "EXPLORE",
   DELAYED_MOVE: "DELAYED_MOVE",
+  CHAINED_MOVE: "CHAINED_MOVE",
   PIRATES,
 };
 export default c;
