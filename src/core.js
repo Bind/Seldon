@@ -201,6 +201,10 @@ class Manager {
       return true;
     });
   }
+  _wipeActions() {
+    this.actions = [];
+    this.storeActions();
+  }
   kill() {
     console.log(`KILLING CORE LOOP ${this.intervalId}`);
     this.dead = true;
