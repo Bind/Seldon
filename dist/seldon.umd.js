@@ -272,6 +272,17 @@
     };
   }
 
+  function secondsToMs(s) {
+    return s * 1000;
+  }
+  function msToSeconds(ms) {
+    return ms / 1000;
+  }
+
+  function within5Minutes(before, now) {
+    return (before - now) / 1000 / 60 < 5;
+  }
+
   function delayedMove(action) {
     const { srcId, syncId, sendAt, percentageSend } = action.payload;
 
@@ -288,14 +299,23 @@
 
     const FORCES = Math.floor((source.energy * percentageSend) / 100);
     console.log(sendAt);
+
     if (sendAt < new Date().getTime()) {
-      console.log("[DELAYED]: LAUNCHING ATTACK");
+      console.log(
+        `[DELAYED]:  ATTACK LAUNCH ${new Date(sendAt)} < ${new Date()}`
+      );
       terminal.println("[DELAYED]: LAUNCHING ATTACK", 4);
 
       //send attack
       terminal.jsShell(`df.move('${srcId}', '${syncId}', ${FORCES}, ${0})`);
       df.move(srcId, syncId, FORCES, 0);
-      return false;
+      return true;
+    } else {
+      console.log(
+        `[DELAYED]:  ATTACK LAUNCH SCHEDULED FOR ${new Date(
+        sendAt
+      )} in ${msToSeconds(sendAt - new Date().getTime())}`
+      );
     }
     return false;
   }
@@ -311,14 +331,6 @@
         percentageSend,
       },
     };
-  }
-
-  function secondsToMs(s) {
-    return s * 1000;
-  }
-
-  function within5Minutes(before, now) {
-    return (before - now) / 1000 / 60 < 5;
   }
 
   function chainedMove(action) {
@@ -344,10 +356,11 @@
 
     const FORCES = Math.floor((source.energy * percentageSend) / 100);
 
-    if (
-      !within5Minutes(createdAt, new Date().getTime()) &&
-      (!waitingForPassengers(srcId, passengers) ||
-        departure < new Date().getTime())
+    if (!within5Minutes(createdAt, new Date().getTime())) {
+      console.log("too soon, waiting for passengers to depart");
+    } else if (
+      !waitingForPassengers(srcId, passengers) ||
+      departure < new Date().getTime()
     ) {
       console.log("[DELAYED]: LAUNCHING ATTACK");
       terminal.println("[DELAYED]: LAUNCHING ATTACK", 4);
@@ -433,41 +446,50 @@
   function createOverload(
     srcId,
     targetId,
+    searchRangeSec = 30 * 60,
     levelLimit = 4,
     numOfPlanets = 5
   ) {
     //Change Find Weapons to go off of travel time instead of distance
-    const weapons = findWeapons(srcId, levelLimit, numOfPlanets, 80, 2500);
+    const weapons = findWeapons(
+      srcId,
+      levelLimit,
+      numOfPlanets,
+      80,
+      searchRangeSec
+    );
     //Sort by who will take longest to land
     weapons.sort(
       (a, b) =>
         df.getTimeForMove(b.locationId, srcId) -
         df.getTimeForMove(a.locationId, srcId)
     );
-
-    weapons.forEach((w) => {
-      console.log(
-        `${w.locationId} will arrive at`,
-        new Date(
-          new Date().getTime() +
-            secondsToMs(df.getTimeForMove(w.locationId, srcId))
-        )
-      );
-    });
-
+    const now = new Date().getTime();
     const ETA_MS =
-      new Date().getTime() +
+      now +
       secondsToMs(df.getTimeForMove(weapons[0].locationId, srcId)) +
       secondsToMs(10);
-    console.log("Expected arrival of reinforcements", new Date(ETA_MS));
-    //Add 10 seconds for processing
+    console.timeLog(`${ETA_MS - now}`);
     const juice = weapons.map((p) => {
+      console.log(
+        `[OVERLOAD]: charge scheduled in  ${msToSeconds(
+        Math.floor(
+          ETA_MS - now + secondsToMs(df.getTimeForMove(p.locationId, srcId))
+        )
+      )}s`
+      );
+
       return createDelayedMove(
         p.locationId,
         srcId,
         Math.floor(ETA_MS - secondsToMs(df.getTimeForMove(p.locationId, srcId)))
       );
     });
+    console.log(
+      `[OVERLOAD]:  discharge scheduled in ${new Date(
+      ETA_MS + secondsToMs(3 * 60)
+    )} `
+    );
     const launch = createChainedMove(
       srcId,
       targetId,
@@ -561,16 +583,16 @@
     }
     checkForOOMThreat() {
       return (df.getUnconfirmedMoves().length =
-        df.getUnconfirmedUpgrades().length > 4);
+        df.getUnconfirmedUpgrades().length > 2);
     }
 
     coreLoop() {
-      if (this.checkForOOMThreat()) {
-        // Prevent OOM bug when executing too many snarks in parallel
-        return;
-      }
       terminal.println("[CORE]: Running Subroutines", 2);
       this.actions.forEach((action) => {
+        if (this.checkForOOMThreat()) {
+          // Prevent OOM bug when executing too many snarks in parallel
+          return;
+        }
         try {
           switch (action.type) {
             case c.PESTER:
@@ -596,11 +618,13 @@
                 action.payload.percentageSend,
                 action.payload.minLevel
               );
+              break;
             case c.DELAYED_MOVE:
               if (delayedMove(action)) {
                 //send once
                 this.delete(action.id);
               }
+              break;
             case c.CHAINED_MOVE:
               if (chainedMove(action)) {
                 //send once
@@ -630,14 +654,24 @@
         this.createAction(a)
       );
     }
-    overload(srcId, targetId, levelLimit = 4, numOfPlanets = 5) {
+    overload(
+      srcId,
+      targetId,
+      searchRangeSec = 30 * 60,
+      levelLimit = 4,
+      numOfPlanets = 5
+    ) {
       if (this.dead) {
         console.log("[CORELOOP IS DEAD], flood ignored");
         return;
       }
-      createOverload(srcId, targetId, levelLimit, numOfPlanets).forEach((a) =>
-        this.createAction(a)
-      );
+      createOverload(
+        srcId,
+        targetId,
+        searchRangeSec,
+        levelLimit,
+        numOfPlanets
+      ).forEach((a) => this.createAction(a));
     }
 
     swarm(planetId, maxDistance = 5000, levelLimit = 5, numOfPlanets = 5) {
@@ -747,7 +781,8 @@
       }
     }
   }
+  var core = new Manager();
 
-  return Manager;
+  return core;
 
 })));

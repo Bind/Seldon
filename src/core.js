@@ -69,16 +69,16 @@ class Manager {
   }
   checkForOOMThreat() {
     return (df.getUnconfirmedMoves().length =
-      df.getUnconfirmedUpgrades().length > 4);
+      df.getUnconfirmedUpgrades().length > 2);
   }
 
   coreLoop() {
-    if (this.checkForOOMThreat()) {
-      // Prevent OOM bug when executing too many snarks in parallel
-      return;
-    }
     terminal.println("[CORE]: Running Subroutines", 2);
     this.actions.forEach((action) => {
+      if (this.checkForOOMThreat()) {
+        // Prevent OOM bug when executing too many snarks in parallel
+        return;
+      }
       try {
         switch (action.type) {
           case c.PESTER:
@@ -104,11 +104,13 @@ class Manager {
               action.payload.percentageSend,
               action.payload.minLevel
             );
+            break;
           case c.DELAYED_MOVE:
             if (delayedMove(action)) {
               //send once
               this.delete(action.id);
             }
+            break;
           case c.CHAINED_MOVE:
             if (chainedMove(action)) {
               //send once
@@ -138,14 +140,24 @@ class Manager {
       this.createAction(a)
     );
   }
-  overload(srcId, targetId, levelLimit = 4, numOfPlanets = 5) {
+  overload(
+    srcId,
+    targetId,
+    searchRangeSec = 30 * 60,
+    levelLimit = 4,
+    numOfPlanets = 5
+  ) {
     if (this.dead) {
       console.log("[CORELOOP IS DEAD], flood ignored");
       return;
     }
-    createOverload(srcId, targetId, levelLimit, numOfPlanets).forEach((a) =>
-      this.createAction(a)
-    );
+    createOverload(
+      srcId,
+      targetId,
+      searchRangeSec,
+      levelLimit,
+      numOfPlanets
+    ).forEach((a) => this.createAction(a));
   }
 
   swarm(planetId, maxDistance = 5000, levelLimit = 5, numOfPlanets = 5) {
@@ -236,6 +248,11 @@ class Manager {
   listActions() {
     console.log(this.actions);
   }
+  _not_working_centerPlanet(locationId) {
+    let p = df.getPlanetWithId(locationId);
+    uiManager.setSelectedPlanet(p);
+    uiManager.emit("centerLocation", p);
+  }
   rehydrate() {
     try {
       if (typeof object == "undefined") {
@@ -255,4 +272,4 @@ class Manager {
     }
   }
 }
-export default Manager;
+export default new Manager();

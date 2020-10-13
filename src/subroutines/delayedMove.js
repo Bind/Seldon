@@ -1,5 +1,6 @@
 import { default as c } from "../constants";
 import { checkNumInboundVoyages } from "../utils/planet";
+import { msToSeconds } from "../utils/time";
 export default function delayedMove(action) {
   const { srcId, syncId, sendAt, percentageSend } = action.payload;
 
@@ -16,14 +17,23 @@ export default function delayedMove(action) {
 
   const FORCES = Math.floor((source.energy * percentageSend) / 100);
   console.log(sendAt);
+
   if (sendAt < new Date().getTime()) {
-    console.log("[DELAYED]: LAUNCHING ATTACK");
+    console.log(
+      `[DELAYED]:  ATTACK LAUNCH ${new Date(sendAt)} < ${new Date()}`
+    );
     terminal.println("[DELAYED]: LAUNCHING ATTACK", 4);
 
     //send attack
     terminal.jsShell(`df.move('${srcId}', '${syncId}', ${FORCES}, ${0})`);
     df.move(srcId, syncId, FORCES, 0);
-    return false;
+    return true;
+  } else {
+    console.log(
+      `[DELAYED]:  ATTACK LAUNCH SCHEDULED FOR ${new Date(
+        sendAt
+      )} in ${msToSeconds(sendAt - new Date().getTime())}`
+    );
   }
   return false;
 }

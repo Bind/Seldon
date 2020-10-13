@@ -25,10 +25,11 @@ export default function chainedMove(action) {
 
   const FORCES = Math.floor((source.energy * percentageSend) / 100);
 
-  if (
-    !within5Minutes(createdAt, new Date().getTime()) &&
-    (!waitingForPassengers(srcId, passengers) ||
-      departure < new Date().getTime())
+  if (!within5Minutes(createdAt, new Date().getTime())) {
+    console.log("too soon, waiting for passengers to depart");
+  } else if (
+    !waitingForPassengers(srcId, passengers) ||
+    departure < new Date().getTime()
   ) {
     console.log("[DELAYED]: LAUNCHING ATTACK");
     terminal.println("[DELAYED]: LAUNCHING ATTACK", 4);
