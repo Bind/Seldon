@@ -21,6 +21,10 @@
       );
     }
   }
+
+  function planetPower$1(planet) {
+    return (planet.energy * planet.defense) / 100;
+  }
   function planetPercentEnergy(planet, percentCap = 25) {
     const unconfirmedDepartures = planet.unconfirmedDepartures.reduce(
       (acc, dep) => {
@@ -89,13 +93,15 @@
     levelLimit = 7,
     numOfPlanets = 5,
     percentageSend = 80,
-    maxTime = 30 * 60
+    maxTime = 30 * 60,
+    excludeList = []
   ) {
     const warmWeapons = df
       .getMyPlanets()
       .filter((p) => p.locationId !== planetLocationId)
       .filter((p) => p.planetLevel <= levelLimit)
       .filter((p) => planetCurrentPercentEnergy(p) > 80)
+      .filter((p) => !excludeList.includes(p.locationId))
       .filter((p) => df.getTimeForMove(p.locationId, planetLocationId) < maxTime);
     const mapped = warmWeapons.map((p) => {
       const landingForces = getEnergyArrival(
@@ -122,10 +128,38 @@
     return (
       arrivals
         .filter((a) => a.player == df.account)
-        .filter((a) => a.arrivalTime * 1000 > new Date().getTime())
+        .filter((a) => a.arrivalTime * 1000 > new Date().getTime()) //If not arrived
         .filter((a) => passengersArray.includes(a.fromPlanet)).length > 0
     );
   }
+
+  function modelEnergyNeededToTake(srcId, syncId) {
+    const src = df.getPlanetWithId(srcId);
+    const sync = df.getPlanetWithId(srcId);
+    const dist = df.getDist(srcId, syncId);
+    const power_needed_on_arrival = ((sync.energy * sync.defense) / 100) * 1.2; //Want a little buffer
+    const scale = (1 / 2) ** (dist / src.range);
+    const power_needed_to_send =
+      power_needed_on_arrival / scale + 0.05 * src.energyCap;
+
+    return power_needed_to_send;
+  }
+
+  var planet = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    checkNumInboundVoyages: checkNumInboundVoyages,
+    planetPower: planetPower$1,
+    planetPercentEnergy: planetPercentEnergy,
+    planetCurrentPercentEnergy: planetCurrentPercentEnergy,
+    getCoords: getCoords,
+    getDistance: getDistance,
+    getEnergyArrival: getEnergyArrival,
+    findNearBy: findNearBy,
+    findWeapons: findWeapons,
+    planetIsRevealed: planetIsRevealed,
+    waitingForPassengers: waitingForPassengers,
+    modelEnergyNeededToTake: modelEnergyNeededToTake
+  });
 
   const PIRATES = "0x0000000000000000000000000000000000000000";
   const c = {
@@ -289,6 +323,13 @@
     return (now - before) / 1000 / 60 < 5;
   }
 
+  var time = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    secondsToMs: secondsToMs,
+    msToSeconds: msToSeconds,
+    within5Minutes: within5Minutes
+  });
+
   function delayedMove(action) {
     const { srcId, syncId, sendAt, percentageSend } = action.payload;
 
@@ -310,7 +351,7 @@
       console.log(
         `[DELAYED]:  ATTACK LAUNCH ${new Date(sendAt)} < ${new Date()}`
       );
-      terminal.println("[DELAYED]: LAUNCHING ATTACK", 4);
+      terminal.println(`[delay]: ${source.locationId} attack launch`, 4);
 
       //send attack
       terminal.jsShell(`df.move('${srcId}', '${syncId}', ${FORCES}, ${0})`);
@@ -318,9 +359,9 @@
       return true;
     } else {
       console.log(
-        `[DELAYED]:  ATTACK LAUNCH SCHEDULED FOR ${new Date(
-        sendAt
-      )} in ${msToSeconds(sendAt - new Date().getTime())}`
+        `[delay]: ${source.locationId} launch in ${msToSeconds(
+        sendAt - new Date().getTime()
+      )}`
       );
     }
     return false;
@@ -389,7 +430,7 @@
     syncId,
     passengers,
     departure,
-    percentageSend = 80
+    percentageSend = 90
   ) {
     return {
       type: c.CHAINED_MOVE,
@@ -458,7 +499,7 @@
     srcId,
     targetId,
     searchRangeSec = 30 * 60,
-    levelLimit = 4,
+    levelLimit = 7,
     numOfPlanets = 5
   ) {
     //Change Find Weapons to go off of travel time instead of distance
@@ -488,7 +529,9 @@
     console.timeLog(`${ETA_MS - now}`);
     const juice = weapons.map((p) => {
       console.log(
-        `[OVERLOAD]: charge scheduled in  ${msToSeconds(
+        `[OVERLOAD]: incoming charge from ${
+        p.locationId
+      } scheduled in ${msToSeconds(
         Math.floor(
           ETA_MS - now + secondsToMs(df.getTimeForMove(p.locationId, srcId))
         )
@@ -540,12 +583,24 @@
     }
   }
 
+  var version = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    areVersionsCompatible: areVersionsCompatible
+  });
+
+  var utils = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    planet: planet,
+    version: version,
+    time: time
+  });
+
   class Manager {
     actions = [];
     intervalId = "";
     version = "0.0.1";
     dead = false;
-
+    utils = utils;
     constructor(blob = []) {
       if (typeof window.__SELDON_CORELOOP__ == "undefined") {
         //setup append only interval id storage
@@ -793,7 +848,9 @@
             return;
           }
           const payload = JSON.parse(raw);
-          if (areVersionsCompatible(this.version, payload?.version)) {
+          if (
+            areVersionsCompatible(this.version, payload?.version)
+          ) {
             this.actions = payload.actions;
           }
         }

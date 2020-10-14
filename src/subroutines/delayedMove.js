@@ -22,7 +22,7 @@ export default function delayedMove(action) {
     console.log(
       `[DELAYED]:  ATTACK LAUNCH ${new Date(sendAt)} < ${new Date()}`
     );
-    terminal.println("[DELAYED]: LAUNCHING ATTACK", 4);
+    terminal.println(`[delay]: ${source.locationId} attack launch`, 4);
 
     //send attack
     terminal.jsShell(`df.move('${srcId}', '${syncId}', ${FORCES}, ${0})`);
@@ -30,9 +30,9 @@ export default function delayedMove(action) {
     return true;
   } else {
     console.log(
-      `[DELAYED]:  ATTACK LAUNCH SCHEDULED FOR ${new Date(
-        sendAt
-      )} in ${msToSeconds(sendAt - new Date().getTime())}`
+      `[delay]: ${source.locationId} launch in ${msToSeconds(
+        sendAt - new Date().getTime()
+      )}`
     );
   }
   return false;

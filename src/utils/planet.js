@@ -87,13 +87,15 @@ export function findWeapons(
   levelLimit = 7,
   numOfPlanets = 5,
   percentageSend = 80,
-  maxTime = 30 * 60
+  maxTime = 30 * 60,
+  excludeList = []
 ) {
   const warmWeapons = df
     .getMyPlanets()
     .filter((p) => p.locationId !== planetLocationId)
     .filter((p) => p.planetLevel <= levelLimit)
     .filter((p) => planetCurrentPercentEnergy(p) > 80)
+    .filter((p) => !excludeList.includes(p.locationId))
     .filter((p) => df.getTimeForMove(p.locationId, planetLocationId) < maxTime);
   const mapped = warmWeapons.map((p) => {
     const landingForces = getEnergyArrival(
@@ -120,7 +122,7 @@ export function waitingForPassengers(locationId, passengersArray) {
   return (
     arrivals
       .filter((a) => a.player == df.account)
-      .filter((a) => a.arrivalTime * 1000 > new Date().getTime())
+      .filter((a) => a.arrivalTime * 1000 > new Date().getTime()) //If not arrived
       .filter((a) => passengersArray.includes(a.fromPlanet)).length > 0
   );
 }

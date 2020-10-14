@@ -2,6 +2,9 @@
 
 Things the bot can currently and will do
 
+_[WIP] is planned_
+_[NEXT] in progress_
+
   __Directives__: Strategic use of routines
    - __sprawl[WIP]__: non-top 15 planets with no set subroutines should explore
    - __score[WIP]__: Move silver to top 15 planets and upgrade them 
@@ -10,6 +13,7 @@ Things the bot can currently and will do
  - __swarm__: continous small uncoordinated attacks
  - __flood__: large coordinated one-off attack to land in close succession
  - __overload__: funnel nearby energy into an all out attack from one planet
+ - __take[NEXT]__: Chain overloads into one attack to capture a planet
 
   __Subroutines__: atomic actions for one planet 
   - __pester__: a small recurring attack
@@ -47,9 +51,13 @@ or launch a large coordinated attack from all over the map
 
 `op.flood(theirLargePlanetId)`
 
-or pull in nearby energy and launch an all out attack from one planet
+or pull in nearby energy and launch an all out attack from one planet, (current logic doesn't work great for howNearbyInSeconds < 5 mins )
 
-`op.overload(yourLargePlanetId, theirLargePlanetId)`
+`op.overload(yourLargePlanetId, theirLargePlanetId, ?howNearbyInSeconds)`
+
+or scour your empire for the energy needed to capture your enemy's crown jewel
+
+`__Not complete__ op.take(theirLargePlanetId)`
 
 or setup a far off planet to capture pirate planets as they're discovered
 

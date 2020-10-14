@@ -52,7 +52,7 @@ export function createChainedMove(
   syncId,
   passengers,
   departure,
-  percentageSend = 80
+  percentageSend = 90
 ) {
   return {
     type: c.CHAINED_MOVE,

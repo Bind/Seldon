@@ -7,7 +7,7 @@ export default function createOverload(
   srcId,
   targetId,
   searchRangeSec = 30 * 60,
-  levelLimit = 4,
+  levelLimit = 7,
   numOfPlanets = 5
 ) {
   //Change Find Weapons to go off of travel time instead of distance
@@ -37,7 +37,9 @@ export default function createOverload(
   console.timeLog(`${ETA_MS - now}`);
   const juice = weapons.map((p) => {
     console.log(
-      `[OVERLOAD]: charge scheduled in  ${msToSeconds(
+      `[OVERLOAD]: incoming charge from ${
+        p.locationId
+      } scheduled in ${msToSeconds(
         Math.floor(
           ETA_MS - now + secondsToMs(df.getTimeForMove(p.locationId, srcId))
         )

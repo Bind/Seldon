@@ -7,15 +7,15 @@ import {
   chainedMove,
 } from "./subroutines";
 import { createSwarm, createFlood, createOverload } from "./routines";
-import { areVersionsCompatible } from "./utils";
 import { default as c } from "./constants";
+import * as utils from "./utils";
 
 class Manager {
   actions = [];
   intervalId = "";
   version = "0.0.1";
   dead = false;
-
+  utils = utils;
   constructor(blob = []) {
     if (typeof window.__SELDON_CORELOOP__ == "undefined") {
       //setup append only interval id storage
@@ -263,7 +263,9 @@ class Manager {
           return;
         }
         const payload = JSON.parse(raw);
-        if (areVersionsCompatible(this.version, payload?.version)) {
+        if (
+          utils.version.areVersionsCompatible(this.version, payload?.version)
+        ) {
           this.actions = payload.actions;
         }
       }
