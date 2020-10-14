@@ -91,6 +91,7 @@ export function findWeapons(
 ) {
   const warmWeapons = df
     .getMyPlanets()
+    .filter((p) => p.locationId !== planetLocationId)
     .filter((p) => p.planetLevel <= levelLimit)
     .filter((p) => planetCurrentPercentEnergy(p) > 80)
     .filter((p) => df.getTimeForMove(p.locationId, planetLocationId) < maxTime);
@@ -115,20 +116,55 @@ export function planetIsRevealed(planetId) {
   return !!planetHelper.getLocationOfPlanet(planetId);
 }
 export function waitingForPassengers(locationId, passengersArray) {
-  const arrivalIds = df.planetHelper.planetArrivalIds[locationId];
+  const arrivals = df.planetHelper.getArrivalsForPlanet(locationId);
   return (
-    arrivalIds
-      .map((a) => df.planetHelper.arrivals[a])
-      .filter((a) => a.arrivalData.player == df.account)
-      .filter((a) => passengersArray.includes(a.arrivalData.fromPlanet))
-      .length > 0
+    arrivals
+      .filter((a) => a.player == df.account)
+      .filter((a) => a.arrivalTime * 1000 > new Date().getTime())
+      .filter((a) => passengersArray.includes(a.fromPlanet)).length > 0
   );
 }
 
-export function modelEnergyGrowth(energy, energyGrowth, duration = 10) {
+function moveEnergyDecay(energy, srcPlanet, dist) {
+  const scale = (1 / 2) ** (dist / srcPlanet.range);
+  let ret = scale * energy - 0.05 * srcPlanet.energyCap;
+  if (ret < 0) ret = 0;
+  return ret;
+}
+
+export function modelEnergyNeededToTake(srcId, syncId) {
+  const src = df.getPlanetWithId(srcId);
+  const sync = df.getPlanetWithId(srcId);
+  const dist = df.getDist(srcId, syncId);
+  const power_needed_on_arrival = ((sync.energy * sync.defense) / 100) * 1.2; //Want a little buffer
+  const scale = (1 / 2) ** (dist / src.range);
+  const power_needed_to_send =
+    power_needed_on_arrival / scale + 0.05 * src.energyCap;
+
+  return power_needed_to_send;
+}
+
+function modelEnergyGrowth(energy, energyGrowth, energyCap, duration = 10) {
   const denom =
     Math.exp((-4 * energyGrowth * duration) / energyCap) *
       (energyCap / energy - 1) +
     1;
   return energyCap / denom;
+}
+
+function modelEnergyDecline(energy, energyGrowth, energyCap, duration = 10) {
+  return energy - modelEnergyGrowth(energy, energyGrowth, energyCap, duration);
+}
+
+function modelEnergyDeclinePercentage(
+  energy,
+  energyGrowth,
+  energyCap,
+  duration = 10
+) {
+  return (
+    ((energy - modelEnergyGrowth(energy, energyGrowth, energyCap, duration)) /
+      energy) *
+    100
+  );
 }

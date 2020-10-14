@@ -93,6 +93,7 @@
   ) {
     const warmWeapons = df
       .getMyPlanets()
+      .filter((p) => p.locationId !== planetLocationId)
       .filter((p) => p.planetLevel <= levelLimit)
       .filter((p) => planetCurrentPercentEnergy(p) > 80)
       .filter((p) => df.getTimeForMove(p.locationId, planetLocationId) < maxTime);
@@ -117,13 +118,12 @@
     return !!planetHelper.getLocationOfPlanet(planetId);
   }
   function waitingForPassengers(locationId, passengersArray) {
-    const arrivalIds = df.planetHelper.planetArrivalIds[locationId];
+    const arrivals = df.planetHelper.getArrivalsForPlanet(locationId);
     return (
-      arrivalIds
-        .map((a) => df.planetHelper.arrivals[a])
-        .filter((a) => a.arrivalData.player == df.account)
-        .filter((a) => passengersArray.includes(a.arrivalData.fromPlanet))
-        .length > 0
+      arrivals
+        .filter((a) => a.player == df.account)
+        .filter((a) => a.arrivalTime * 1000 > new Date().getTime())
+        .filter((a) => passengersArray.includes(a.fromPlanet)).length > 0
     );
   }
 
@@ -168,9 +168,15 @@
       (source.energyCap * percentageTrigger) / 100
     );
     const FUZZY_ENERGY = Math.floor(source.energy - unconfirmedDepartures);
-    const FORCES = Math.floor((source.energyCap * percentageSend) / 100);
 
     if (FUZZY_ENERGY > TRIGGER_AMOUNT) {
+      //If significantly over the trigger amount just batch include excess energy in the attack
+      // If current energy is 90% instead of sending 20% and landing at 70%, send 45% then recover;
+
+      const overflow_send =
+        planetCurrentPercentEnergy(source) - (percentageTrigger - percentageSend);
+
+      const FORCES = Math.floor((source.energyCap * overflow_send) / 100);
       console.log("[PESTER]: LAUNCHING ATTACK FROM INTERVAL");
       terminal.println("[PESTER]: LAUNCHING ATTACK FROM INTERVAL", 4);
 
@@ -280,7 +286,7 @@
   }
 
   function within5Minutes(before, now) {
-    return (before - now) / 1000 / 60 < 5;
+    return (now - before) / 1000 / 60 < 5;
   }
 
   function delayedMove(action) {
@@ -353,15 +359,7 @@
       //Too many inbound
       return;
     }
-
-    const FORCES = Math.floor((source.energy * percentageSend) / 100);
-
-    if (!within5Minutes(createdAt, new Date().getTime())) {
-      console.log("too soon, waiting for passengers to depart");
-    } else if (
-      !waitingForPassengers(srcId, passengers) ||
-      departure < new Date().getTime()
-    ) {
+    const send = () => {
       console.log("[DELAYED]: LAUNCHING ATTACK");
       terminal.println("[DELAYED]: LAUNCHING ATTACK", 4);
 
@@ -369,6 +367,19 @@
       terminal.jsShell(`df.move('${srcId}', '${syncId}', ${FORCES}, ${0})`);
       df.move(srcId, syncId, FORCES, 0);
       return true;
+    };
+
+    const FORCES = Math.floor((source.energy * percentageSend) / 100);
+
+    if (within5Minutes(createdAt, new Date().getTime())) {
+      console.log("too soon, waiting for passengers to depart");
+    } else if (waitingForPassengers(srcId, passengers)) {
+      console.log("Waiting for passengers for passengers to arrive'");
+    } else {
+      return send();
+    }
+    if (departure < new Date().getTime()) {
+      return send();
     }
     return false;
   }
@@ -458,6 +469,10 @@
       80,
       searchRangeSec
     );
+    if (weapons.length == 0) {
+      //No valid weapons
+      return;
+    }
     //Sort by who will take longest to land
     weapons.sort(
       (a, b) =>
@@ -465,6 +480,7 @@
         df.getTimeForMove(a.locationId, srcId)
     );
     const now = new Date().getTime();
+
     const ETA_MS =
       now +
       secondsToMs(df.getTimeForMove(weapons[0].locationId, srcId)) +
@@ -544,7 +560,7 @@
         this.storeActions();
       }
       this.rehydrate();
-      this.intervalId = setInterval(this.coreLoop.bind(this), 60000);
+      this.intervalId = setInterval(this.coreLoop.bind(this), 15000);
       window.__SELDON_CORELOOP__.push(this.intervalId);
       //aliases
       this.p = this.createPester.bind(this);
@@ -724,6 +740,7 @@
 
     delete(id) {
       this.actions = this.actions.filter((a) => a.id !== id);
+      this.storeActions();
     }
     wipeActionsFromPlanet(locationId) {
       this.actions = this.actions.filter((a) => {
@@ -762,6 +779,11 @@
     listActions() {
       console.log(this.actions);
     }
+    _not_working_centerPlanet(locationId) {
+      let p = df.getPlanetWithId(locationId);
+      uiManager.setSelectedPlanet(p);
+      uiManager.emit("centerLocation", p);
+    }
     rehydrate() {
       try {
         if (typeof object == "undefined") {
@@ -781,8 +803,7 @@
       }
     }
   }
-  var core = new Manager();
 
-  return core;
+  return Manager;
 
 })));

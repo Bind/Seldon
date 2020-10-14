@@ -6,5 +6,5 @@ export function msToSeconds(ms) {
 }
 
 export function within5Minutes(before, now) {
-  return (before - now) / 1000 / 60 < 5;
+  return (now - before) / 1000 / 60 < 5;
 }

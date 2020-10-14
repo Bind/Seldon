@@ -1,5 +1,8 @@
 // A recurring attack
-import { checkNumInboundVoyages } from "../utils/planet";
+import {
+  checkNumInboundVoyages,
+  planetCurrentPercentEnergy,
+} from "../utils/planet";
 import { default as c } from "../constants";
 
 export default function pester(
@@ -29,9 +32,15 @@ export default function pester(
     (source.energyCap * percentageTrigger) / 100
   );
   const FUZZY_ENERGY = Math.floor(source.energy - unconfirmedDepartures);
-  const FORCES = Math.floor((source.energyCap * percentageSend) / 100);
 
   if (FUZZY_ENERGY > TRIGGER_AMOUNT) {
+    //If significantly over the trigger amount just batch include excess energy in the attack
+    // If current energy is 90% instead of sending 20% and landing at 70%, send 45% then recover;
+
+    const overflow_send =
+      planetCurrentPercentEnergy(source) - (percentageTrigger - percentageSend);
+
+    const FORCES = Math.floor((source.energyCap * overflow_send) / 100);
     console.log("[PESTER]: LAUNCHING ATTACK FROM INTERVAL");
     terminal.println("[PESTER]: LAUNCHING ATTACK FROM INTERVAL", 4);
 

@@ -3,14 +3,6 @@ import { createDelayedMove, createChainedMove } from "../subroutines";
 
 import { secondsToMs, msToSeconds } from "../utils/time";
 
-function customLogger() {
-  return {
-    RAN: "",
-    DELAYED: "",
-    FORCED: "",
-  };
-}
-
 export default function createOverload(
   srcId,
   targetId,
@@ -26,6 +18,10 @@ export default function createOverload(
     80,
     searchRangeSec
   );
+  if (weapons.length == 0) {
+    //No valid weapons
+    return;
+  }
   //Sort by who will take longest to land
   weapons.sort(
     (a, b) =>
@@ -33,6 +29,7 @@ export default function createOverload(
       df.getTimeForMove(a.locationId, srcId)
   );
   const now = new Date().getTime();
+
   const ETA_MS =
     now +
     secondsToMs(df.getTimeForMove(weapons[0].locationId, srcId)) +

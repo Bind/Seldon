@@ -30,7 +30,7 @@ class Manager {
       this.storeActions();
     }
     this.rehydrate();
-    this.intervalId = setInterval(this.coreLoop.bind(this), 60000);
+    this.intervalId = setInterval(this.coreLoop.bind(this), 15000);
     window.__SELDON_CORELOOP__.push(this.intervalId);
     //aliases
     this.p = this.createPester.bind(this);
@@ -210,6 +210,7 @@ class Manager {
 
   delete(id) {
     this.actions = this.actions.filter((a) => a.id !== id);
+    this.storeActions();
   }
   wipeActionsFromPlanet(locationId) {
     this.actions = this.actions.filter((a) => {
@@ -272,4 +273,4 @@ class Manager {
     }
   }
 }
-export default new Manager();
+export default Manager;
