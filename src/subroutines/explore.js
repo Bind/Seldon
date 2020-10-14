@@ -26,8 +26,8 @@ export default function explore(
     );
   takeable.sort((a, b) => b.planetLevel - a.planetLevel);
   if (takeable.length > 0) {
-    console.log("[EXPLORE]: LAUNCHING EXPLORATION");
-    terminal.println("[EXPLORE]: LAUNCHING EXPLORATIONINTERVAL", 4);
+    console.log("[explore]: launching exploration");
+    terminal.println("[explore]: launching exploration", 4);
     const target = takeable[0];
     const FORCES = Math.floor(
       df.getEnergyNeededForMove(
@@ -46,10 +46,10 @@ export default function explore(
     df.move(explorer.locationId, target.locationId, FORCES, 0);
   } else if (planetCurrentPercentEnergy(explorer) > 75) {
     console.error(
-      `[EXPLORER]: ${explorer.id} has not valid targets consider increasing percentageSend`
+      `[explore]: ${explorer.id} has not valid targets consider increasing percentageSend`
     );
     terminal.println(
-      `[EXPLORER]: ${explorer.id} has not valid targets consider increasing percentageSend`,
+      `[explore]: ${explorer.id} has not valid targets consider increasing percentageSend`,
       3
     );
   }

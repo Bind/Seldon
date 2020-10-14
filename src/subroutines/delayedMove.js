@@ -19,9 +19,7 @@ export default function delayedMove(action) {
   console.log(sendAt);
 
   if (sendAt < new Date().getTime()) {
-    console.log(
-      `[DELAYED]:  ATTACK LAUNCH ${new Date(sendAt)} < ${new Date()}`
-    );
+    console.log(`[delay]: ${source.locationId} attack launch`);
     terminal.println(`[delay]: ${source.locationId} attack launch`, 4);
 
     //send attack

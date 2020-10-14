@@ -211,8 +211,8 @@
         planetCurrentPercentEnergy(source) - (percentageTrigger - percentageSend);
 
       const FORCES = Math.floor((source.energyCap * overflow_send) / 100);
-      console.log("[PESTER]: LAUNCHING ATTACK FROM INTERVAL");
-      terminal.println("[PESTER]: LAUNCHING ATTACK FROM INTERVAL", 4);
+      console.log(`[pester]: launching attack from ${source.locationId}`);
+      terminal.println(`[pester]: launching attack from ${source.locationId}`, 4);
 
       //send attack
       terminal.jsShell(
@@ -265,8 +265,8 @@
       );
     takeable.sort((a, b) => b.planetLevel - a.planetLevel);
     if (takeable.length > 0) {
-      console.log("[EXPLORE]: LAUNCHING EXPLORATION");
-      terminal.println("[EXPLORE]: LAUNCHING EXPLORATIONINTERVAL", 4);
+      console.log("[explore]: launching exploration");
+      terminal.println("[explore]: launching exploration", 4);
       const target = takeable[0];
       const FORCES = Math.floor(
         df.getEnergyNeededForMove(
@@ -285,10 +285,10 @@
       df.move(explorer.locationId, target.locationId, FORCES, 0);
     } else if (planetCurrentPercentEnergy(explorer) > 75) {
       console.error(
-        `[EXPLORER]: ${explorer.id} has not valid targets consider increasing percentageSend`
+        `[explore]: ${explorer.id} has not valid targets consider increasing percentageSend`
       );
       terminal.println(
-        `[EXPLORER]: ${explorer.id} has not valid targets consider increasing percentageSend`,
+        `[explore]: ${explorer.id} has not valid targets consider increasing percentageSend`,
         3
       );
     }
@@ -348,9 +348,7 @@
     console.log(sendAt);
 
     if (sendAt < new Date().getTime()) {
-      console.log(
-        `[DELAYED]:  ATTACK LAUNCH ${new Date(sendAt)} < ${new Date()}`
-      );
+      console.log(`[delay]: ${source.locationId} attack launch`);
       terminal.println(`[delay]: ${source.locationId} attack launch`, 4);
 
       //send attack
@@ -401,8 +399,8 @@
       return;
     }
     const send = () => {
-      console.log("[DELAYED]: LAUNCHING ATTACK");
-      terminal.println("[DELAYED]: LAUNCHING ATTACK", 4);
+      console.log("[chained]: launching attack");
+      terminal.println("[chained]: launching attack", 4);
 
       //send attack
       terminal.jsShell(`df.move('${srcId}', '${syncId}', ${FORCES}, ${0})`);
@@ -526,10 +524,9 @@
       now +
       secondsToMs(df.getTimeForMove(weapons[0].locationId, srcId)) +
       secondsToMs(10);
-    console.timeLog(`${ETA_MS - now}`);
     const juice = weapons.map((p) => {
       console.log(
-        `[OVERLOAD]: incoming charge from ${
+        `[overload]: incoming charge from ${
         p.locationId
       } scheduled in ${msToSeconds(
         Math.floor(
@@ -545,7 +542,7 @@
       );
     });
     console.log(
-      `[OVERLOAD]:  discharge scheduled in ${new Date(
+      `[overload]:  discharge scheduled in ${new Date(
       ETA_MS + secondsToMs(3 * 60)
     )} `
     );

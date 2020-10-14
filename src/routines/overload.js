@@ -34,10 +34,9 @@ export default function createOverload(
     now +
     secondsToMs(df.getTimeForMove(weapons[0].locationId, srcId)) +
     secondsToMs(10);
-  console.timeLog(`${ETA_MS - now}`);
   const juice = weapons.map((p) => {
     console.log(
-      `[OVERLOAD]: incoming charge from ${
+      `[overload]: incoming charge from ${
         p.locationId
       } scheduled in ${msToSeconds(
         Math.floor(
@@ -53,7 +52,7 @@ export default function createOverload(
     );
   });
   console.log(
-    `[OVERLOAD]:  discharge scheduled in ${new Date(
+    `[overload]:  discharge scheduled in ${new Date(
       ETA_MS + secondsToMs(3 * 60)
     )} `
   );

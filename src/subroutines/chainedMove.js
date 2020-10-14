@@ -23,8 +23,8 @@ export default function chainedMove(action) {
     return;
   }
   const send = () => {
-    console.log("[DELAYED]: LAUNCHING ATTACK");
-    terminal.println("[DELAYED]: LAUNCHING ATTACK", 4);
+    console.log("[chained]: launching attack");
+    terminal.println("[chained]: launching attack", 4);
 
     //send attack
     terminal.jsShell(`df.move('${srcId}', '${syncId}', ${FORCES}, ${0})`);

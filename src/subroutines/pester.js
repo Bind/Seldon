@@ -41,8 +41,8 @@ export default function pester(
       planetCurrentPercentEnergy(source) - (percentageTrigger - percentageSend);
 
     const FORCES = Math.floor((source.energyCap * overflow_send) / 100);
-    console.log("[PESTER]: LAUNCHING ATTACK FROM INTERVAL");
-    terminal.println("[PESTER]: LAUNCHING ATTACK FROM INTERVAL", 4);
+    console.log(`[pester]: launching attack from ${source.locationId}`);
+    terminal.println(`[pester]: launching attack from ${source.locationId}`, 4);
 
     //send attack
     terminal.jsShell(
