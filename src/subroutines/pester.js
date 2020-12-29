@@ -24,7 +24,7 @@ export default function pester(
     },
     0
   );
-  if (checkNumInboundVoyages(opponentsPlanetLocationsId) >= 7) {
+  if (checkNumInboundVoyages(opponentsPlanetLocationsId) >= 6) {
     //Too many inbound
     return;
   }
@@ -62,7 +62,7 @@ export function createPester(
   meta = {}
 ) {
   return {
-    id: `[PESTER]-${yourPlanetLocationId}-${opponentsPlanetLocationsId}-${percentageTrigger}-${percentageSend}`,
+    id: `[PESTER]-${srcId}-${syncId}-${percentageTrigger}-${percentageSend}`,
     type: c.PESTER,
     payload: {
       srcId,

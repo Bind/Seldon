@@ -1,18 +1,21 @@
 import { findWeapons } from "../utils/planet";
 import { createDelayedMove } from "../subroutines/delayedMove";
 import { secondsToMs } from "../utils/time";
+import { getEnergyArrival } from "../utils/planet";
 
 export default function createFlood(
   locationId,
   levelLimit = 7,
-  numOfPlanets = 5
+  numOfPlanets = 5,
+  searchRangeSec = 60 * 60,
+  test = true
 ) {
   const weapons = findWeapons(
     locationId,
     levelLimit,
     numOfPlanets,
     80,
-    60 * 60
+    searchRangeSec
   );
   //Sort by who will take longest to land
 
@@ -26,6 +29,16 @@ export default function createFlood(
     secondsToMs(df.getTimeForMove(weapons[0].locationId, locationId)) +
     secondsToMs(10);
   //Add 10 seconds for processing
+  if (test == true) {
+    const totalLandingEnergy = weapons.reduce(
+      (acc, w) => acc + getEnergyArrival(w.locationId, locationId, 80),
+      0
+    );
+    console.log(
+      `all energy will land with ${totalLandingEnergy} at ${locationId}`
+    );
+    return [];
+  }
   return weapons.map((p) => {
     return createDelayedMove(
       p.locationId,

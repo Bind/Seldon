@@ -1,7 +1,13 @@
 export function checkNumInboundVoyages(planetId, from = "") {
   if (from == "") {
     return (
-      df.getAllVoyages().filter((v) => v.planetId == planetId).length +
+      df
+        .getAllVoyages()
+        .filter(
+          (v) =>
+            v.toPlanet == planetId &&
+            v.arrivalTime > new Date().getTime() / 1000
+        ).length +
       df.getUnconfirmedMoves().filter((m) => m.to == planetId).length
     );
   } else {
@@ -40,15 +46,6 @@ export function planetCurrentPercentEnergy(planet) {
   return Math.floor((FUZZY_ENERGY / planet.energyCap) * 100);
 }
 
-export function getCoords(planetLocationId) {
-  try {
-    return df.planetHelper.planetLocationMap[planetLocationId].coords;
-  } catch (err) {
-    console.error(err);
-    console.log(`unable to find ${planetLocationId} in planetLocationMap`);
-    return { x: 0, y: 0 };
-  }
-}
 export function getDistance(a, b) {
   const dist = Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2));
   return dist;
@@ -59,6 +56,9 @@ export function getEnergyArrival(srcId, synId, percentageSend = 25) {
   const payload = (energyCap * percentageSend) / 100;
   return df.getEnergyArrivingForMove(srcId, synId, payload);
 }
+export function getEnergyArrivalAbs(srcId, syncId, energy) {
+  return df.getEnergyArrivingForMove(srcId, syncId, energy);
+}
 export function findNearBy(
   planetLocationId,
   maxDistance = 5000,
@@ -67,14 +67,15 @@ export function findNearBy(
 ) {
   const owned = df.getMyPlanets();
 
-  ownedFiltered = owned
+  const ownedFiltered = owned
     .filter((p) => p.planetLevel <= levelLimit)
-    .filter(
-      (p) =>
-        getDistance(getCoords(planetLocationId), getCoords(p.locationId)) <
-        maxDistance
-    );
-  const mapped = ownedFiltered.map((p) => {
+    .filter((p) => df.getDist(planetLocationId, p.locationId) < maxDistance);
+  ownedFiltered.sort(
+    (a, b) =>
+      df.getDist(planetLocationId, a.locationId) -
+      df.getDist(planetLocationId, b.locationId)
+  );
+  return ownedFiltered.slice(0, numOfPlanets).map((p) => {
     const landingForces = getEnergyArrival(p.locationId, planetLocationId);
     return {
       landingForces,
@@ -115,10 +116,10 @@ export function findWeapons(
   return mapped.map((p) => p.planet).slice(0, numOfPlanets);
 }
 export function planetIsRevealed(planetId) {
-  return !!planetHelper.getLocationOfPlanet(planetId);
+  return !!contractsAPI.getLocationOfPlanet(planetId);
 }
-export function waitingForPassengers(locationId, passengersArray) {
-  const arrivals = df.planetHelper.getArrivalsForPlanet(locationId);
+export async function waitingForPassengers(locationId, passengersArray) {
+  const arrivals = await df.contractsAPI.getArrivalsForPlanet(locationId);
   return (
     arrivals
       .filter((a) => a.player == df.account)

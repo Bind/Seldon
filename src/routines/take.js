@@ -1,7 +1,35 @@
-import { findWeapons, modelEnergyNeededToTake } from "../utils/planet";
+import {
+  findWeapons,
+  planetPercentEnergy,
+  modelEnergyNeededToTake,
+} from "../utils/planet";
 import { createDelayedMove, createChainedMove } from "../subroutines";
 
 import { secondsToMs, msToSeconds } from "../utils/time";
+
+class PlanetConduitNode {
+  children = [];
+  planet = null;
+  constructor(planet) {
+    super(planet);
+  }
+  getEnergyForMove(targetId) {
+    return df.getEnergyNeedForMove(
+      this.planet.locationId,
+      targetId,
+      this.availableEnergy(this.planet.locationId)
+    );
+  }
+  availableEnergy(targetId) {
+    return (
+      planetPercentEnergy(this.planet.energy, 80) +
+        this.children.reduce(
+          (acc, child) => acc + child.getEnergyForMove(targetId)
+        ),
+      0
+    );
+  }
+}
 
 export default function createTake(targetId, depthOfSearch = 3) {
   //Change Find Weapons to go off of travel time instead of distance
@@ -12,14 +40,28 @@ export default function createTake(targetId, depthOfSearch = 3) {
     };
   });
 
+  const target = df.contractAPI.getPlanetWithId(targetId);
   const exclude = [];
   myPlanets.sort(
     (a, b) => a.modelEnergyNeededToTake - b.modelEnergyNeededToTake
   ); //Get least
 
+  const BOSS_HEALTH = (target.energy * target.defense) / 100;
+
+  //Determine if energy more efficient to send directly or via existing conduit
   const launch_planet = myPlanets[0];
   exclude.push(launch_planet.locationId);
+
+  // Step 1. Get 7 best planets to attack
+  // Step 2. Get best planets to overload the first 7
+  // Step 3. Check if thats enough energy
+  // Step 4. Build action set
+
+  // breadthfirst
+  // If can't do breadthfirst error out
+
   // Run variation of knapsack algo
+  // Get seven best planets to
 
   // Todo: changed ChainedMove to either store a time to start check if passengers have arrived or...
   // instead of too_early period, on each coreLoop check arrivals and use action as Memo,
@@ -74,3 +116,5 @@ export default function createTake(targetId, depthOfSearch = 3) {
   // return [launch, ...juice];
   console.log("not implemented");
 }
+
+function createMoveGraph(src, target, excludeArray) {}

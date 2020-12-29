@@ -2,7 +2,7 @@ import { default as c } from "../constants";
 import { checkNumInboundVoyages, waitingForPassengers } from "../utils/planet";
 import { within5Minutes } from "../utils/time";
 
-export default function chainedMove(action) {
+export default async function chainedMove(action) {
   const {
     srcId,
     syncId,
@@ -33,11 +33,12 @@ export default function chainedMove(action) {
   };
 
   const FORCES = Math.floor((source.energy * percentageSend) / 100);
-
   if (within5Minutes(createdAt, new Date().getTime())) {
     console.log("too soon, waiting for passengers to depart");
-  } else if (waitingForPassengers(srcId, passengers)) {
+    return false;
+  } else if (await waitingForPassengers(srcId, passengers)) {
     console.log("Waiting for passengers for passengers to arrive'");
+    return false;
   } else {
     return send();
   }
@@ -65,5 +66,13 @@ export function createChainedMove(
       percentageSend,
       createdAt: new Date().getTime(),
     },
+    meta: {
+      sent: false,
+    },
   };
+}
+
+export function markChainedMoveSent(chainedMove) {
+  chainedMove.meta.sent = true;
+  return chainedMove;
 }

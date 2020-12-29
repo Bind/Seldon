@@ -2,13 +2,15 @@ import { findWeapons } from "../utils/planet";
 import { createDelayedMove, createChainedMove } from "../subroutines";
 
 import { secondsToMs, msToSeconds } from "../utils/time";
+import { getEnergyArrivalAbs, getEnergyArrival } from "../utils/planet";
 
 export default function createOverload(
   srcId,
   targetId,
   searchRangeSec = 30 * 60,
   levelLimit = 7,
-  numOfPlanets = 5
+  numOfPlanets = 5,
+  test = false
 ) {
   //Change Find Weapons to go off of travel time instead of distance
   const weapons = findWeapons(
@@ -56,6 +58,20 @@ export default function createOverload(
       ETA_MS + secondsToMs(3 * 60)
     )} `
   );
+  if (test) {
+    const addedEnergy = juice.reduce(
+      (acc, a) => acc + getEnergyArrival(a.payload.srcId, srcId, 75),
+      0
+    );
+    console.log(
+      `OVERLOAD TEST: Expect at Minimum ${getEnergyArrivalAbs(
+        srcId,
+        targetId,
+        addedEnergy
+      )}`
+    );
+    return [];
+  }
   const launch = createChainedMove(
     srcId,
     targetId,

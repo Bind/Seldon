@@ -5,8 +5,12 @@ import {
   createExplore,
   delayedMove,
   chainedMove,
+  markChainedMoveSent,
 } from "./subroutines";
 import { createSwarm, createFlood, createOverload } from "./routines";
+import { capturePlanets } from "./capturePlanets";
+import { distributeSilver } from "./distributeSilver";
+import { autoUpgrade } from "./upgrade";
 import { default as c } from "./constants";
 import * as utils from "./utils";
 
@@ -50,6 +54,27 @@ class Manager {
     this.actions.push(action);
     this.storeActions();
   }
+  digIn(locationId, levelLimit = 3, maxDistributeEnergyPercent = 50) {
+    capturePlanets(locationId, levelLimit, maxDistributeEnergyPercent, []);
+  }
+  expand() {
+    const owned = df.getMyPlanets();
+    let captured = [];
+    owned.forEach(async (p) => {
+      captured = await capturePlanets(p.locationId, 4, 50, captured);
+    });
+  }
+
+  distribute() {
+    const owned = df.getMyPlanets().filter((p) => p.silverGrowth > 0);
+    let captured = [];
+    owned.forEach(async (p) => {
+      captured = await distributeSilver(p.locationId, 40);
+    });
+  }
+  harden() {
+    autoUpgrade();
+  }
   exploreDirective() {
     terminal.println("[CORE]: Running Directive Explore", 2);
     try {
@@ -73,7 +98,9 @@ class Manager {
   }
 
   coreLoop() {
-    terminal.println("[CORE]: Running Subroutines", 2);
+    if (this.actions.length > 0) {
+      terminal.println("[CORE]: Running Subroutines", 2);
+    }
     this.actions.forEach((action) => {
       if (this.checkForOOMThreat()) {
         // Prevent OOM bug when executing too many snarks in parallel
@@ -83,16 +110,16 @@ class Manager {
         switch (action.type) {
           case c.PESTER:
             pester(
-              action.payload.yourPlanetLocationId,
-              action.payload.opponentsPlanetLocationsId,
+              action.payload.srcId,
+              action.payload.syncId,
               action.payload.percentageTrigger,
               action.payload.percentageSend
             );
             break;
           case c.FEED:
             pester(
-              action.payload.sourcePlanetLocationId,
-              action.payload.syncPlanetLocationsId,
+              action.payload.srcId,
+              action.payload.syncId,
               action.payload.percentageTrigger,
               action.payload.percentageSend
             );
@@ -113,8 +140,7 @@ class Manager {
             break;
           case c.CHAINED_MOVE:
             if (chainedMove(action)) {
-              //send once
-              this.delete(action.id);
+              this.update(markChainedMoveSent(action));
             }
             break;
           default:
@@ -131,21 +157,32 @@ class Manager {
       return a.payload.opponentsPlanetLocationsId !== planetId;
     });
   }
-  flood(planetId, levelLimit = 7, numOfPlanets = 5) {
+  flood(
+    planetId,
+    levelLimit = 7,
+    numOfPlanets = 5,
+    searchRangeSec = 60 * 60,
+    test = false
+  ) {
     if (this.dead) {
       console.log("[CORELOOP IS DEAD], flood ignored");
       return;
     }
-    createFlood(planetId, levelLimit, numOfPlanets).forEach((a) =>
-      this.createAction(a)
-    );
+    createFlood(
+      planetId,
+      levelLimit,
+      numOfPlanets,
+      searchRangeSec,
+      test
+    ).forEach((a) => this.createAction(a));
   }
   overload(
     srcId,
     targetId,
     searchRangeSec = 30 * 60,
     levelLimit = 4,
-    numOfPlanets = 5
+    numOfPlanets = 5,
+    test = false
   ) {
     if (this.dead) {
       console.log("[CORELOOP IS DEAD], flood ignored");
@@ -156,7 +193,8 @@ class Manager {
       targetId,
       searchRangeSec,
       levelLimit,
-      numOfPlanets
+      numOfPlanets,
+      test
     ).forEach((a) => this.createAction(a));
   }
 
@@ -210,6 +248,10 @@ class Manager {
 
   delete(id) {
     this.actions = this.actions.filter((a) => a.id !== id);
+    this.storeActions();
+  }
+  update(action) {
+    this.actions = [...this.actions.filter((a) => a.id !== action.id), action];
     this.storeActions();
   }
   wipeActionsFromPlanet(locationId) {

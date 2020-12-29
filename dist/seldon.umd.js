@@ -7,7 +7,13 @@
   function checkNumInboundVoyages(planetId, from = "") {
     if (from == "") {
       return (
-        df.getAllVoyages().filter((v) => v.planetId == planetId).length +
+        df
+          .getAllVoyages()
+          .filter(
+            (v) =>
+              v.toPlanet == planetId &&
+              v.arrivalTime > new Date().getTime() / 1000
+          ).length +
         df.getUnconfirmedMoves().filter((m) => m.to == planetId).length
       );
     } else {
@@ -46,15 +52,6 @@
     return Math.floor((FUZZY_ENERGY / planet.energyCap) * 100);
   }
 
-  function getCoords(planetLocationId) {
-    try {
-      return df.planetHelper.planetLocationMap[planetLocationId].coords;
-    } catch (err) {
-      console.error(err);
-      console.log(`unable to find ${planetLocationId} in planetLocationMap`);
-      return { x: 0, y: 0 };
-    }
-  }
   function getDistance(a, b) {
     const dist = Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2));
     return dist;
@@ -65,6 +62,9 @@
     const payload = (energyCap * percentageSend) / 100;
     return df.getEnergyArrivingForMove(srcId, synId, payload);
   }
+  function getEnergyArrivalAbs(srcId, syncId, energy) {
+    return df.getEnergyArrivingForMove(srcId, syncId, energy);
+  }
   function findNearBy(
     planetLocationId,
     maxDistance = 5000,
@@ -73,14 +73,15 @@
   ) {
     const owned = df.getMyPlanets();
 
-    ownedFiltered = owned
+    const ownedFiltered = owned
       .filter((p) => p.planetLevel <= levelLimit)
-      .filter(
-        (p) =>
-          getDistance(getCoords(planetLocationId), getCoords(p.locationId)) <
-          maxDistance
-      );
-    const mapped = ownedFiltered.map((p) => {
+      .filter((p) => df.getDist(planetLocationId, p.locationId) < maxDistance);
+    ownedFiltered.sort(
+      (a, b) =>
+        df.getDist(planetLocationId, a.locationId) -
+        df.getDist(planetLocationId, b.locationId)
+    );
+    return ownedFiltered.slice(0, numOfPlanets).map((p) => {
       const landingForces = getEnergyArrival(p.locationId, planetLocationId);
       return {
         landingForces,
@@ -121,10 +122,10 @@
     return mapped.map((p) => p.planet).slice(0, numOfPlanets);
   }
   function planetIsRevealed(planetId) {
-    return !!planetHelper.getLocationOfPlanet(planetId);
+    return !!contractsAPI.getLocationOfPlanet(planetId);
   }
-  function waitingForPassengers(locationId, passengersArray) {
-    const arrivals = df.planetHelper.getArrivalsForPlanet(locationId);
+  async function waitingForPassengers(locationId, passengersArray) {
+    const arrivals = await df.contractsAPI.getArrivalsForPlanet(locationId);
     return (
       arrivals
         .filter((a) => a.player == df.account)
@@ -151,9 +152,9 @@
     planetPower: planetPower$1,
     planetPercentEnergy: planetPercentEnergy,
     planetCurrentPercentEnergy: planetCurrentPercentEnergy,
-    getCoords: getCoords,
     getDistance: getDistance,
     getEnergyArrival: getEnergyArrival,
+    getEnergyArrivalAbs: getEnergyArrivalAbs,
     findNearBy: findNearBy,
     findWeapons: findWeapons,
     planetIsRevealed: planetIsRevealed,
@@ -194,7 +195,7 @@
       },
       0
     );
-    if (checkNumInboundVoyages(opponentsPlanetLocationsId) >= 7) {
+    if (checkNumInboundVoyages(opponentsPlanetLocationsId) >= 6) {
       //Too many inbound
       return;
     }
@@ -232,7 +233,7 @@
     meta = {}
   ) {
     return {
-      id: `[PESTER]-${yourPlanetLocationId}-${opponentsPlanetLocationsId}-${percentageTrigger}-${percentageSend}`,
+      id: `[PESTER]-${srcId}-${syncId}-${percentageTrigger}-${percentageSend}`,
       type: c.PESTER,
       payload: {
         srcId,
@@ -378,7 +379,7 @@
     };
   }
 
-  function chainedMove(action) {
+  async function chainedMove(action) {
     const {
       srcId,
       syncId,
@@ -409,18 +410,15 @@
     };
 
     const FORCES = Math.floor((source.energy * percentageSend) / 100);
-
     if (within5Minutes(createdAt, new Date().getTime())) {
       console.log("too soon, waiting for passengers to depart");
-    } else if (waitingForPassengers(srcId, passengers)) {
+      return false;
+    } else if (await waitingForPassengers(srcId, passengers)) {
       console.log("Waiting for passengers for passengers to arrive'");
+      return false;
     } else {
       return send();
     }
-    if (departure < new Date().getTime()) {
-      return send();
-    }
-    return false;
   }
 
   function createChainedMove(
@@ -441,17 +439,25 @@
         percentageSend,
         createdAt: new Date().getTime(),
       },
+      meta: {
+        sent: false,
+      },
     };
+  }
+
+  function markChainedMoveSent(chainedMove) {
+    chainedMove.meta.sent = true;
+    return chainedMove;
   }
 
   function createSwarm(
     planetId,
     maxDistance = 5000,
-    levelLimit = 5,
+    levelLimit = 1,
     numOfPlanets = 5
   ) {
     const nearby = findNearBy(planetId, maxDistance, levelLimit, numOfPlanets);
-    nearby.map((p) => {
+    return nearby.map((p) => {
       return createPester(p.planet.locationId, planetId, 75, 40, {
         tag: "SWARM",
       });
@@ -461,14 +467,16 @@
   function createFlood(
     locationId,
     levelLimit = 7,
-    numOfPlanets = 5
+    numOfPlanets = 5,
+    searchRangeSec = 60 * 60,
+    test = true
   ) {
     const weapons = findWeapons(
       locationId,
       levelLimit,
       numOfPlanets,
       80,
-      60 * 60
+      searchRangeSec
     );
     //Sort by who will take longest to land
 
@@ -482,6 +490,16 @@
       secondsToMs(df.getTimeForMove(weapons[0].locationId, locationId)) +
       secondsToMs(10);
     //Add 10 seconds for processing
+    if (test == true) {
+      const totalLandingEnergy = weapons.reduce(
+        (acc, w) => acc + getEnergyArrival(w.locationId, locationId, 80),
+        0
+      );
+      console.log(
+        `all energy will land with ${totalLandingEnergy} at ${locationId}`
+      );
+      return [];
+    }
     return weapons.map((p) => {
       return createDelayedMove(
         p.locationId,
@@ -498,7 +516,8 @@
     targetId,
     searchRangeSec = 30 * 60,
     levelLimit = 7,
-    numOfPlanets = 5
+    numOfPlanets = 5,
+    test = false
   ) {
     //Change Find Weapons to go off of travel time instead of distance
     const weapons = findWeapons(
@@ -546,6 +565,20 @@
       ETA_MS + secondsToMs(3 * 60)
     )} `
     );
+    if (test) {
+      const addedEnergy = juice.reduce(
+        (acc, a) => acc + getEnergyArrival(a.payload.srcId, srcId, 75),
+        0
+      );
+      console.log(
+        `OVERLOAD TEST: Expect at Minimum ${getEnergyArrivalAbs(
+        srcId,
+        targetId,
+        addedEnergy
+      )}`
+      );
+      return [];
+    }
     const launch = createChainedMove(
       srcId,
       targetId,
@@ -553,6 +586,181 @@
       ETA_MS + secondsToMs(3 * 60)
     );
     return [launch, ...juice];
+  }
+
+  function distance(fromLoc, toLoc) {
+    return Math.sqrt(
+      (fromLoc.coords.x - toLoc.coords.x) ** 2 +
+        (fromLoc.coords.y - toLoc.coords.y) ** 2
+    );
+  }
+  function distanceSort(a, b) {
+    return a[1] - b[1];
+  }
+
+  async function capturePlanets(
+    fromId,
+    minCaptureLevel,
+    maxDistributeEnergyPercent,
+    capturedMemo = []
+  ) {
+    //Ripped from Sophon
+
+    const planet = df.getPlanetWithId(fromId);
+
+    const candidates_ = df
+      .getPlanetsInRange(fromId, maxDistributeEnergyPercent)
+      .filter((p) => p.owner === "0x0000000000000000000000000000000000000000")
+      .filter((p) => p.planetLevel >= minCaptureLevel)
+      .map((to) => {
+        const fromLoc = df.getLocationOfPlanet(fromId);
+        const toLoc = df.getLocationOfPlanet(to.locationId);
+        return [to, distance(fromLoc, toLoc)];
+      })
+      .sort(distanceSort);
+
+    let i = 0;
+    const energyBudget = Math.floor(
+      (maxDistributeEnergyPercent / 100) * planet.energy
+    );
+
+    console.log("energyBudget ", energyBudget);
+
+    let energySpent = 0;
+    try {
+      while (energyBudget - energySpent > 0 && i < candidates_.length) {
+        const energyLeft = energyBudget - energySpent;
+
+        // Remember its a tuple of candidates and their distance
+        const candidate = candidates_[i++][0];
+
+        // Check if has incoming moves from another planet to safe
+        const arrivals = await df.contractsAPI.getArrivalsForPlanet(
+          candidate.locationId
+        );
+        if (arrivals.length !== 0) {
+          continue;
+        }
+
+        const energyArriving = candidate.energyCap * 0.25;
+        const energyNeeded = Math.ceil(
+          df.getEnergyNeededForMove(fromId, candidate.locationId, energyArriving)
+        );
+        if (energyLeft - energyNeeded < 0) {
+          continue;
+        }
+        if (capturedMemo.includes(candidate.locationId)) {
+          continue;
+        }
+
+        console.log(
+          `df.move("${fromId}","${candidate.locationId}",${energyNeeded},0)`
+        );
+        await df.move(fromId, candidate.locationId, energyNeeded, 0);
+        capturedMemo.push(candidate.locationId);
+        energySpent += energyNeeded;
+      }
+    } catch (err) {
+      console.error(err);
+    }
+
+    return capturedMemo;
+  }
+
+  function distance$1(fromLoc, toLoc) {
+    return Math.sqrt(
+      (fromLoc.coords.x - toLoc.coords.x) ** 2 +
+        (fromLoc.coords.y - toLoc.coords.y) ** 2
+    );
+  }
+  function distanceSort$1(a, b) {
+    return a[1] - b[1];
+  }
+
+  function isAsteroid(p) {
+    return p.silverGrowth > 0;
+  }
+
+  async function distributeSilver(fromId, maxDistributeEnergyPercent) {
+    const planet = df.getPlanetWithId(fromId);
+    const candidates_ = df
+      .getPlanetsInRange(fromId, maxDistributeEnergyPercent)
+      .filter((p) => p.owner === df.getAccount())
+      .filter((p) => p.planetLevel >= 4)
+      .filter((p) => !isAsteroid(p))
+      .map((to) => {
+        const fromLoc = df.getLocationOfPlanet(fromId);
+        const toLoc = df.getLocationOfPlanet(to.locationId);
+        return [to, distance$1(fromLoc, toLoc)];
+      })
+      .sort(distanceSort$1);
+
+    let i = 0;
+    const energyBudget = Math.floor(
+      (maxDistributeEnergyPercent / 100) * planet.energy
+    );
+    const silverBudget = Math.floor(planet.silver);
+
+    let energySpent = 0;
+    let silverSpent = 0;
+    while (energyBudget - energySpent > 0 && i < candidates_.length) {
+      const silverLeft = silverBudget - silverSpent;
+      const energyLeft = energyBudget - energySpent;
+
+      // Remember its a tuple of candidates and their distance
+      const candidate = candidates_[i++][0];
+
+      // Check if has incoming moves from a previous asteroid to be safe
+      const arrivals = await df.contractsAPI.getArrivalsForPlanet(
+        candidate.locationId
+      );
+      if (arrivals.length !== 0) {
+        continue;
+      }
+
+      const silverRequested = Math.ceil(candidate.silverCap - candidate.silver);
+      const silverNeeded =
+        silverRequested > silverLeft ? silverLeft : silverRequested;
+
+      // Setting a 100 silver guard here, but we could set this to 0
+      if (silverNeeded < 100) {
+        continue;
+      }
+
+      const energyNeeded = Math.ceil(
+        df.getEnergyNeededForMove(fromId, candidate.locationId, 1)
+      );
+      if (energyLeft - energyNeeded < 0) {
+        continue;
+      }
+
+      console.log(
+        'df.move("' +
+          fromId +
+          '","' +
+          candidate.locationId +
+          '",' +
+          energyNeeded +
+          "," +
+          silverNeeded +
+          ")"
+      );
+      await df.move(fromId, candidate.locationId, energyNeeded, silverNeeded);
+      energySpent += energyNeeded;
+      silverSpent += silverNeeded;
+    }
+  }
+
+  function checkPlanetUpgradeLevel(planet) {
+    return planet.upgradeState.reduce((acc, i) => acc + i, 0);
+  }
+
+  async function autoUpgrade(location) {
+    const planet = df.getPlanetById(location);
+    if (planet.planetLevel < 4 && checkPlanetUpgradeLevel(planet) < 4) {
+      //auto upgrade defense
+      df.upgrade(planet.locationId, 0);
+    }
   }
 
   function parseVersionString(string) {
@@ -632,6 +840,27 @@
       this.actions.push(action);
       this.storeActions();
     }
+    digIn(locationId, levelLimit = 3, maxDistributeEnergyPercent = 50) {
+      capturePlanets(locationId, levelLimit, maxDistributeEnergyPercent, []);
+    }
+    expand() {
+      const owned = df.getMyPlanets();
+      let captured = [];
+      owned.forEach(async (p) => {
+        captured = await capturePlanets(p.locationId, 4, 50, captured);
+      });
+    }
+
+    distribute() {
+      const owned = df.getMyPlanets().filter((p) => p.silverGrowth > 0);
+      let captured = [];
+      owned.forEach(async (p) => {
+        captured = await distributeSilver(p.locationId, 40);
+      });
+    }
+    harden() {
+      autoUpgrade();
+    }
     exploreDirective() {
       terminal.println("[CORE]: Running Directive Explore", 2);
       try {
@@ -655,7 +884,9 @@
     }
 
     coreLoop() {
-      terminal.println("[CORE]: Running Subroutines", 2);
+      if (this.actions.length > 0) {
+        terminal.println("[CORE]: Running Subroutines", 2);
+      }
       this.actions.forEach((action) => {
         if (this.checkForOOMThreat()) {
           // Prevent OOM bug when executing too many snarks in parallel
@@ -665,16 +896,16 @@
           switch (action.type) {
             case c.PESTER:
               pester(
-                action.payload.yourPlanetLocationId,
-                action.payload.opponentsPlanetLocationsId,
+                action.payload.srcId,
+                action.payload.syncId,
                 action.payload.percentageTrigger,
                 action.payload.percentageSend
               );
               break;
             case c.FEED:
               pester(
-                action.payload.sourcePlanetLocationId,
-                action.payload.syncPlanetLocationsId,
+                action.payload.srcId,
+                action.payload.syncId,
                 action.payload.percentageTrigger,
                 action.payload.percentageSend
               );
@@ -695,8 +926,7 @@
               break;
             case c.CHAINED_MOVE:
               if (chainedMove(action)) {
-                //send once
-                this.delete(action.id);
+                this.update(markChainedMoveSent(action));
               }
               break;
             default:
@@ -713,21 +943,32 @@
         return a.payload.opponentsPlanetLocationsId !== planetId;
       });
     }
-    flood(planetId, levelLimit = 7, numOfPlanets = 5) {
+    flood(
+      planetId,
+      levelLimit = 7,
+      numOfPlanets = 5,
+      searchRangeSec = 60 * 60,
+      test = false
+    ) {
       if (this.dead) {
         console.log("[CORELOOP IS DEAD], flood ignored");
         return;
       }
-      createFlood(planetId, levelLimit, numOfPlanets).forEach((a) =>
-        this.createAction(a)
-      );
+      createFlood(
+        planetId,
+        levelLimit,
+        numOfPlanets,
+        searchRangeSec,
+        test
+      ).forEach((a) => this.createAction(a));
     }
     overload(
       srcId,
       targetId,
       searchRangeSec = 30 * 60,
       levelLimit = 4,
-      numOfPlanets = 5
+      numOfPlanets = 5,
+      test = false
     ) {
       if (this.dead) {
         console.log("[CORELOOP IS DEAD], flood ignored");
@@ -738,7 +979,8 @@
         targetId,
         searchRangeSec,
         levelLimit,
-        numOfPlanets
+        numOfPlanets,
+        test
       ).forEach((a) => this.createAction(a));
     }
 
@@ -792,6 +1034,10 @@
 
     delete(id) {
       this.actions = this.actions.filter((a) => a.id !== id);
+      this.storeActions();
+    }
+    update(action) {
+      this.actions = [...this.actions.filter((a) => a.id !== action.id), action];
       this.storeActions();
     }
     wipeActionsFromPlanet(locationId) {
