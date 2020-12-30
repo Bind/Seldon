@@ -14,7 +14,7 @@ import { autoUpgrade } from "./upgrade.js";
 import { default as c } from "./constants.js";
 import * as utils from "./utils/index.js";
 
-class Manager {
+export class Manager {
   actions = [];
   intervalId = "";
   version = "0.0.1";
@@ -317,4 +317,3 @@ class Manager {
     }
   }
 }
-export default Manager;
