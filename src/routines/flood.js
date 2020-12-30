@@ -1,3 +1,4 @@
+import c from "../constants";
 import { findWeapons } from "../utils/planet.js";
 import { createDelayedMove } from "../subroutines/delayedMove.js";
 import { secondsToMs } from "../utils/time.js";
@@ -14,7 +15,6 @@ export default function createFlood(
     locationId,
     levelLimit,
     numOfPlanets,
-    80,
     searchRangeSec
   );
   //Sort by who will take longest to land
@@ -45,7 +45,10 @@ export default function createFlood(
       locationId,
       Math.floor(
         ETA_MS - secondsToMs(df.getTimeForMove(p.locationId, locationId))
-      )
+      ),
+      {
+        ROUTINE: c.FLOOD,
+      }
     );
   });
 }

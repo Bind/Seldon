@@ -93,7 +93,6 @@
     planetLocationId,
     levelLimit = 7,
     numOfPlanets = 5,
-    percentageSend = 80,
     maxTime = 30 * 60,
     excludeList = []
   ) {
@@ -101,14 +100,13 @@
       .getMyPlanets()
       .filter((p) => p.locationId !== planetLocationId)
       .filter((p) => p.planetLevel <= levelLimit)
-      .filter((p) => planetCurrentPercentEnergy(p) > 80)
       .filter((p) => !excludeList.includes(p.locationId))
       .filter((p) => df.getTimeForMove(p.locationId, planetLocationId) < maxTime);
     const mapped = warmWeapons.map((p) => {
       const landingForces = getEnergyArrival(
         p.locationId,
         planetLocationId,
-        percentageSend
+        planetCurrentPercentEnergy(p)
       );
       return {
         landingForces,
@@ -164,6 +162,8 @@
 
   const PIRATES = "0x0000000000000000000000000000000000000000";
   const c = {
+    FLOOD: "FLOOD",
+    OVERLOAD: "OVERLOAD",
     PESTER: "PESTER",
     AID: "AID",
     FEED: "AID",
@@ -366,7 +366,15 @@
     return false;
   }
 
-  function createDelayedMove(srcId, syncId, sendAt, percentageSend = 80) {
+  function createDelayedMove(
+    srcId,
+    syncId,
+    sendAt,
+    percentageSend = 80,
+    meta = {
+      sent: false,
+    }
+  ) {
     return {
       type: c.DELAYED_MOVE,
       id: `${c.DELAYED_MOVE}-${srcId}-${syncId}`,
@@ -376,6 +384,7 @@
         sendAt,
         percentageSend,
       },
+      meta: meta,
     };
   }
 
@@ -392,12 +401,12 @@
     const match = df.getMyPlanets().filter((t) => t.locationId == srcId);
     if (match.length == 0) {
       //Should delete self on this case
-      return;
+      return false;
     }
     const source = match[0];
     if (checkNumInboundVoyages(syncId) >= 7) {
       //Too many inbound
-      return;
+      return false;
     }
     const send = () => {
       console.log("[chained]: launching attack");
@@ -475,7 +484,6 @@
       locationId,
       levelLimit,
       numOfPlanets,
-      80,
       searchRangeSec
     );
     //Sort by who will take longest to land
@@ -506,7 +514,10 @@
         locationId,
         Math.floor(
           ETA_MS - secondsToMs(df.getTimeForMove(p.locationId, locationId))
-        )
+        ),
+        {
+          ROUTINE: c.FLOOD,
+        }
       );
     });
   }
@@ -520,16 +531,10 @@
     test = false
   ) {
     //Change Find Weapons to go off of travel time instead of distance
-    const weapons = findWeapons(
-      srcId,
-      levelLimit,
-      numOfPlanets,
-      80,
-      searchRangeSec
-    );
+    const weapons = findWeapons(srcId, levelLimit, numOfPlanets, searchRangeSec);
     if (weapons.length == 0) {
       //No valid weapons
-      return;
+      return false;
     }
     //Sort by who will take longest to land
     weapons.sort(
@@ -800,6 +805,11 @@
     time: time
   });
 
+  async function asyncForEach(array, callback) {
+    for (let index = 0; index < array.length; index++) {
+      await callback(array[index], index, array);
+    }
+  }
   class Manager {
     actions = [];
     intervalId = "";
@@ -883,11 +893,11 @@
         df.getUnconfirmedUpgrades().length > 2);
     }
 
-    coreLoop() {
+    async coreLoop() {
       if (this.actions.length > 0) {
         terminal.println("[CORE]: Running Subroutines", 2);
       }
-      this.actions.forEach((action) => {
+      asyncForEach(this.actions, async (action) => {
         if (this.checkForOOMThreat()) {
           // Prevent OOM bug when executing too many snarks in parallel
           return;
@@ -925,8 +935,10 @@
               }
               break;
             case c.CHAINED_MOVE:
-              if (chainedMove(action)) {
-                this.update(markChainedMoveSent(action));
+              if (action.meta.sent == false) {
+                if (await chainedMove(action)) {
+                  this.update(markChainedMoveSent(action));
+                }
               }
               break;
             default:

@@ -18,12 +18,12 @@ export default async function chainedMove(action) {
   const match = df.getMyPlanets().filter((t) => t.locationId == srcId);
   if (match.length == 0) {
     //Should delete self on this case
-    return;
+    return false;
   }
   const source = match[0];
   if (checkNumInboundVoyages(syncId) >= 7) {
     //Too many inbound
-    return;
+    return false;
   }
   const send = () => {
     console.log("[chained]: launching attack");
@@ -45,10 +45,6 @@ export default async function chainedMove(action) {
   } else {
     return send();
   }
-  if (departure < new Date().getTime()) {
-    return send();
-  }
-  return false;
 }
 
 export function createChainedMove(

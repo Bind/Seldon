@@ -36,7 +36,15 @@ export default function delayedMove(action) {
   return false;
 }
 
-export function createDelayedMove(srcId, syncId, sendAt, percentageSend = 80) {
+export function createDelayedMove(
+  srcId,
+  syncId,
+  sendAt,
+  percentageSend = 80,
+  meta = {
+    sent: false,
+  }
+) {
   return {
     type: c.DELAYED_MOVE,
     id: `${c.DELAYED_MOVE}-${srcId}-${syncId}`,
@@ -46,5 +54,6 @@ export function createDelayedMove(srcId, syncId, sendAt, percentageSend = 80) {
       sendAt,
       percentageSend,
     },
+    meta: meta,
   };
 }

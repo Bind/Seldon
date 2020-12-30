@@ -13,16 +13,10 @@ export default function createOverload(
   test = false
 ) {
   //Change Find Weapons to go off of travel time instead of distance
-  const weapons = findWeapons(
-    srcId,
-    levelLimit,
-    numOfPlanets,
-    80,
-    searchRangeSec
-  );
+  const weapons = findWeapons(srcId, levelLimit, numOfPlanets, searchRangeSec);
   if (weapons.length == 0) {
     //No valid weapons
-    return;
+    return false;
   }
   //Sort by who will take longest to land
   weapons.sort(

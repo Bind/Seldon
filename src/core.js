@@ -13,7 +13,11 @@ import { distributeSilver } from "./distributeSilver.js";
 import { autoUpgrade } from "./upgrade.js";
 import { default as c } from "./constants.js";
 import * as utils from "./utils/index.js";
-
+async function asyncForEach(array, callback) {
+  for (let index = 0; index < array.length; index++) {
+    await callback(array[index], index, array);
+  }
+}
 export class Manager {
   actions = [];
   intervalId = "";
@@ -97,11 +101,11 @@ export class Manager {
       df.getUnconfirmedUpgrades().length > 2);
   }
 
-  coreLoop() {
+  async coreLoop() {
     if (this.actions.length > 0) {
       terminal.println("[CORE]: Running Subroutines", 2);
     }
-    this.actions.forEach((action) => {
+    asyncForEach(this.actions, async (action) => {
       if (this.checkForOOMThreat()) {
         // Prevent OOM bug when executing too many snarks in parallel
         return;
@@ -139,8 +143,10 @@ export class Manager {
             }
             break;
           case c.CHAINED_MOVE:
-            if (chainedMove(action)) {
-              this.update(markChainedMoveSent(action));
+            if (action.meta.sent == false) {
+              if (await chainedMove(action)) {
+                this.update(markChainedMoveSent(action));
+              }
             }
             break;
           default:
