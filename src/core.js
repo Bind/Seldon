@@ -7,7 +7,7 @@ import {
   chainedMove,
   markChainedMoveSent,
 } from "./subroutines/index.js";
-import { createSwarm, createFlood, createOverload } from "./routines";
+import { createSwarm, createFlood, createOverload } from "./routines/index.js";
 import { capturePlanets } from "./capturePlanets.js";
 import { distributeSilver } from "./distributeSilver.js";
 import { autoUpgrade } from "./upgrade.js";
