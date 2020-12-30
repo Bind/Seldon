@@ -6,7 +6,7 @@ import {
   delayedMove,
   chainedMove,
   markChainedMoveSent,
-} from "./subroutines";
+} from "./subroutines.js";
 import { createSwarm, createFlood, createOverload } from "./routines.js";
 import { capturePlanets } from "./capturePlanets.js";
 import { distributeSilver } from "./distributeSilver.js";
