@@ -2,8 +2,8 @@
 import {
   checkNumInboundVoyages,
   planetCurrentPercentEnergy,
-} from "../utils/planet";
-import { default as c } from "../constants";
+} from "../utils/planet.js";
+import { default as c } from "../constants.js";
 
 export default function pester(
   yourPlanetLocationId,

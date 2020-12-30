@@ -1,3 +1,3 @@
-export * as planet from "./planet";
-export * as version from "./version";
-export * as time from "./time";
+export * as planet from "./planet.js";
+export * as version from "./version.js";
+export * as time from "./time.js";

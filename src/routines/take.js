@@ -2,10 +2,10 @@ import {
   findWeapons,
   planetPercentEnergy,
   modelEnergyNeededToTake,
-} from "../utils/planet";
-import { createDelayedMove, createChainedMove } from "../subroutines";
+} from "../utils/planet.js";
+import { createDelayedMove, createChainedMove } from "../subroutines.js";
 
-import { secondsToMs, msToSeconds } from "../utils/time";
+import { secondsToMs, msToSeconds } from "../utils/time.js";
 
 class PlanetConduitNode {
   children = [];

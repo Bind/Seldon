@@ -1,8 +1,8 @@
-import { findWeapons } from "../utils/planet";
-import { createDelayedMove, createChainedMove } from "../subroutines";
+import { findWeapons } from "../utils/planet.js";
+import { createDelayedMove, createChainedMove } from "../subroutines.js";
 
-import { secondsToMs, msToSeconds } from "../utils/time";
-import { getEnergyArrivalAbs, getEnergyArrival } from "../utils/planet";
+import { secondsToMs, msToSeconds } from "../utils/time.js";
+import { getEnergyArrivalAbs, getEnergyArrival } from "../utils/planet.js";
 
 export default function createOverload(
   srcId,

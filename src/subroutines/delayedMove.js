@@ -1,6 +1,6 @@
-import { default as c } from "../constants";
-import { checkNumInboundVoyages } from "../utils/planet";
-import { msToSeconds } from "../utils/time";
+import { default as c } from "../constants.js";
+import { checkNumInboundVoyages } from "../utils/planet.js";
+import { msToSeconds } from "../utils/time.js";
 export default function delayedMove(action) {
   const { srcId, syncId, sendAt, percentageSend } = action.payload;
 

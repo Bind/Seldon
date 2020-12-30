@@ -1,7 +1,7 @@
-import { findWeapons } from "../utils/planet";
-import { createDelayedMove } from "../subroutines/delayedMove";
-import { secondsToMs } from "../utils/time";
-import { getEnergyArrival } from "../utils/planet";
+import { findWeapons } from "../utils/planet.js";
+import { createDelayedMove } from "../subroutines/delayedMove.js";
+import { secondsToMs } from "../utils/time.js";
+import { getEnergyArrival } from "../utils/planet.js";
 
 export default function createFlood(
   locationId,

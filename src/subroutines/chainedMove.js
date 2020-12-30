@@ -1,6 +1,9 @@
-import { default as c } from "../constants";
-import { checkNumInboundVoyages, waitingForPassengers } from "../utils/planet";
-import { within5Minutes } from "../utils/time";
+import { default as c } from "../constants.js";
+import {
+  checkNumInboundVoyages,
+  waitingForPassengers,
+} from "../utils/planet.js";
+import { within5Minutes } from "../utils/time.js";
 
 export default async function chainedMove(action) {
   const {

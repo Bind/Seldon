@@ -1,5 +1,5 @@
-import { findNearBy } from "../utils/planet";
-import { createPester } from "../subroutines/pester";
+import { findNearBy } from "../utils/planet.js";
+import { createPester } from "../subroutines/pester.js";
 
 export default function createSwarm(
   planetId,

@@ -7,12 +7,12 @@ import {
   chainedMove,
   markChainedMoveSent,
 } from "./subroutines";
-import { createSwarm, createFlood, createOverload } from "./routines";
-import { capturePlanets } from "./capturePlanets";
-import { distributeSilver } from "./distributeSilver";
-import { autoUpgrade } from "./upgrade";
-import { default as c } from "./constants";
-import * as utils from "./utils";
+import { createSwarm, createFlood, createOverload } from "./routines.js";
+import { capturePlanets } from "./capturePlanets.js";
+import { distributeSilver } from "./distributeSilver.js";
+import { autoUpgrade } from "./upgrade.js";
+import { default as c } from "./constants.js";
+import * as utils from "./utils.js";
 
 class Manager {
   actions = [];
