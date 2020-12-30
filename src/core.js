@@ -12,7 +12,7 @@ import { capturePlanets } from "./capturePlanets.js";
 import { distributeSilver } from "./distributeSilver.js";
 import { autoUpgrade } from "./upgrade.js";
 import { default as c } from "./constants.js";
-import * as utils from "./utils.js";
+import * as utils from "./utils";
 
 class Manager {
   actions = [];
