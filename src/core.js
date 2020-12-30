@@ -6,13 +6,13 @@ import {
   delayedMove,
   chainedMove,
   markChainedMoveSent,
-} from "./subroutines";
+} from "./subroutines/index.js";
 import { createSwarm, createFlood, createOverload } from "./routines";
 import { capturePlanets } from "./capturePlanets.js";
 import { distributeSilver } from "./distributeSilver.js";
 import { autoUpgrade } from "./upgrade.js";
 import { default as c } from "./constants.js";
-import * as utils from "./utils";
+import * as utils from "./utils/index.js";
 
 class Manager {
   actions = [];

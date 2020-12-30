@@ -1,5 +1,5 @@
 import { findWeapons } from "../utils/planet.js";
-import { createDelayedMove, createChainedMove } from "../subroutines";
+import { createDelayedMove, createChainedMove } from "../subroutines/index.js";
 
 import { secondsToMs, msToSeconds } from "../utils/time.js";
 import { getEnergyArrivalAbs, getEnergyArrival } from "../utils/planet.js";

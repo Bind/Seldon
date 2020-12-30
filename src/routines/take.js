@@ -3,7 +3,7 @@ import {
   planetPercentEnergy,
   modelEnergyNeededToTake,
 } from "../utils/planet.js";
-import { createDelayedMove, createChainedMove } from "../subroutines";
+import { createDelayedMove, createChainedMove } from "../index.js";
 
 import { secondsToMs, msToSeconds } from "../utils/time.js";
 
