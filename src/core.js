@@ -18,7 +18,7 @@ async function asyncForEach(array, callback) {
     await callback(array[index], index, array);
   }
 }
-export class Manager {
+export default class Manager {
   actions = [];
   intervalId = "";
   version = "0.0.1";

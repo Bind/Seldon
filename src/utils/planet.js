@@ -173,3 +173,13 @@ function modelEnergyDeclinePercentage(
     100
   );
 }
+
+function modelCurrentEnergyGrowth(energy, energyGrowth, energyCap) {
+  const oneTick = 1;
+
+  const denom =
+    Math.exp((-4 * energyGrowth * oneTick) / energyCap) *
+      (energyCap / energy - 1) +
+    1;
+  return energyCap / denom - energy;
+}
