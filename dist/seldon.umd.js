@@ -1102,18 +1102,14 @@
     }
     rehydrate() {
       try {
-        if (typeof object == "undefined") {
-          const raw = window.localStorage.getItem("actions");
-          if (raw === null) {
-            console.error("No Actions to Rehydrate");
-            return;
-          }
-          const payload = JSON.parse(raw);
-          if (
-            areVersionsCompatible(this.version, payload?.version)
-          ) {
-            this.actions = payload.actions;
-          }
+        const raw = window.localStorage.getItem("actions");
+        if (raw === null) {
+          console.error("No Actions to Rehydrate");
+          return;
+        }
+        const payload = JSON.parse(raw);
+        if (areVersionsCompatible(this.version, payload?.version)) {
+          this.actions = payload.actions;
         }
       } catch (err) {
         console.error("Issue Rehydrating Actions");
