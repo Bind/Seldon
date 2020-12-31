@@ -1,13 +1,8 @@
 (function (global, factory) {
-  typeof exports === "object" && typeof module !== "undefined"
-    ? (module.exports = factory())
-    : typeof define === "function" && define.amd
-    ? define(factory)
-    : ((global =
-        typeof globalThis !== "undefined" ? globalThis : global || self),
-      (global.Seldon = factory()));
-})(this, function () {
-  "use strict";
+  typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
+  typeof define === 'function' && define.amd ? define(factory) :
+  (global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.Seldon = factory());
+}(this, (function () { 'use strict';
 
   function checkNumInboundVoyages(planetId, from = "") {
     if (from == "") {
@@ -27,9 +22,8 @@
           .getAllVoyages()
           .filter((v) => v.toPlanet == planetId)
           .filter((v) => v.fromPlanet == from).length +
-        df
-          .getUnconfirmedMoves()
-          .filter((m) => m.to == planetId && m.from == from).length
+        df.getUnconfirmedMoves().filter((m) => m.to == planetId && m.from == from)
+          .length
       );
     }
   }
@@ -111,9 +105,7 @@
       .filter((p) => p.locationId !== planetLocationId)
       .filter((p) => p.planetLevel <= levelLimit)
       .filter((p) => !excludeList.includes(p.locationId))
-      .filter(
-        (p) => df.getTimeForMove(p.locationId, planetLocationId) < maxTime
-      );
+      .filter((p) => df.getTimeForMove(p.locationId, planetLocationId) < maxTime);
     const mapped = warmWeapons.map((p) => {
       const landingForces = getEnergyArrival(
         p.locationId,
@@ -156,7 +148,7 @@
     return power_needed_to_send;
   }
 
-  var planet = /*#__PURE__*/ Object.freeze({
+  var planet = /*#__PURE__*/Object.freeze({
     __proto__: null,
     checkNumInboundVoyages: checkNumInboundVoyages,
     planetPower: planetPower$1,
@@ -169,7 +161,7 @@
     findWeapons: findWeapons,
     planetIsRevealed: planetIsRevealed,
     waitingForPassengers: waitingForPassengers,
-    modelEnergyNeededToTake: modelEnergyNeededToTake,
+    modelEnergyNeededToTake: modelEnergyNeededToTake
   });
 
   const PIRATES = "0x0000000000000000000000000000000000000000";
@@ -221,21 +213,17 @@
       // If current energy is 90% instead of sending 20% and landing at 70%, send 45% then recover;
 
       const overflow_send =
-        planetCurrentPercentEnergy(source) -
-        (percentageTrigger - percentageSend);
+        planetCurrentPercentEnergy(source) - (percentageTrigger - percentageSend);
 
       const FORCES = Math.floor((source.energyCap * overflow_send) / 100);
       console.log(`[pester]: launching attack from ${source.locationId}`);
-      terminal.println(
-        `[pester]: launching attack from ${source.locationId}`,
-        4
-      );
+      terminal.println(`[pester]: launching attack from ${source.locationId}`, 4);
 
       //send attack
       terminal.jsShell(
         `df.move('${
-          source.locationId
-        }', '${opponentsPlanetLocationsId}', ${FORCES}, ${0})`
+        source.locationId
+      }', '${opponentsPlanetLocationsId}', ${FORCES}, ${0})`
       );
       df.move(yourPlanetLocationId, opponentsPlanetLocationsId, FORCES, 0);
     }
@@ -296,8 +284,8 @@
       //send attack
       terminal.jsShell(
         `df.move('${explorer.locationId}', '${
-          target.locationId
-        }', ${FORCES}, ${0})`
+        target.locationId
+      }', ${FORCES}, ${0})`
       );
       df.move(explorer.locationId, target.locationId, FORCES, 0);
     } else if (planetCurrentPercentEnergy(explorer) > 75) {
@@ -340,11 +328,11 @@
     return (now - before) / 1000 / 60 < 5;
   }
 
-  var time = /*#__PURE__*/ Object.freeze({
+  var time = /*#__PURE__*/Object.freeze({
     __proto__: null,
     secondsToMs: secondsToMs,
     msToSeconds: msToSeconds,
-    within5Minutes: within5Minutes,
+    within5Minutes: within5Minutes
   });
 
   function delayedMove(action) {
@@ -375,8 +363,8 @@
     } else {
       console.log(
         `[delay]: ${source.locationId} launch in ${msToSeconds(
-          sendAt - new Date().getTime()
-        )}`
+        sendAt - new Date().getTime()
+      )}`
       );
     }
     return false;
@@ -548,12 +536,7 @@
     test = false
   ) {
     //Change Find Weapons to go off of travel time instead of distance
-    const weapons = findWeapons(
-      srcId,
-      levelLimit,
-      numOfPlanets,
-      searchRangeSec
-    );
+    const weapons = findWeapons(srcId, levelLimit, numOfPlanets, searchRangeSec);
     if (weapons.length == 0) {
       //No valid weapons
       return false;
@@ -573,12 +556,12 @@
     const juice = weapons.map((p) => {
       console.log(
         `[overload]: incoming charge from ${
-          p.locationId
-        } scheduled in ${msToSeconds(
-          Math.floor(
-            ETA_MS - now + secondsToMs(df.getTimeForMove(p.locationId, srcId))
-          )
-        )}s`
+        p.locationId
+      } scheduled in ${msToSeconds(
+        Math.floor(
+          ETA_MS - now + secondsToMs(df.getTimeForMove(p.locationId, srcId))
+        )
+      )}s`
       );
 
       return createDelayedMove(
@@ -589,8 +572,8 @@
     });
     console.log(
       `[overload]:  discharge scheduled in ${new Date(
-        ETA_MS + secondsToMs(3 * 60)
-      )} `
+      ETA_MS + secondsToMs(3 * 60)
+    )} `
     );
     if (test) {
       const addedEnergy = juice.reduce(
@@ -599,10 +582,10 @@
       );
       console.log(
         `OVERLOAD TEST: Expect at Minimum ${getEnergyArrivalAbs(
-          srcId,
-          targetId,
-          addedEnergy
-        )}`
+        srcId,
+        targetId,
+        addedEnergy
+      )}`
       );
       return [];
     }
@@ -671,11 +654,7 @@
 
         const energyArriving = candidate.energyCap * 0.25;
         const energyNeeded = Math.ceil(
-          df.getEnergyNeededForMove(
-            fromId,
-            candidate.locationId,
-            energyArriving
-          )
+          df.getEnergyNeededForMove(fromId, candidate.locationId, energyArriving)
         );
         if (energyLeft - energyNeeded < 0) {
           continue;
@@ -819,16 +798,16 @@
     }
   }
 
-  var version = /*#__PURE__*/ Object.freeze({
+  var version = /*#__PURE__*/Object.freeze({
     __proto__: null,
-    areVersionsCompatible: areVersionsCompatible,
+    areVersionsCompatible: areVersionsCompatible
   });
 
-  var utils = /*#__PURE__*/ Object.freeze({
+  var utils = /*#__PURE__*/Object.freeze({
     __proto__: null,
     planet: planet,
     version: version,
-    time: time,
+    time: time
   });
 
   async function asyncForEach(array, callback) {
@@ -1076,10 +1055,7 @@
       this.storeActions();
     }
     update(action) {
-      this.actions = [
-        ...this.actions.filter((a) => a.id !== action.id),
-        action,
-      ];
+      this.actions = [...this.actions.filter((a) => a.id !== action.id), action];
       this.storeActions();
     }
     wipeActionsFromPlanet(locationId) {
@@ -1133,7 +1109,9 @@
             return;
           }
           const payload = JSON.parse(raw);
-          if (areVersionsCompatible(this.version, payload?.version)) {
+          if (
+            areVersionsCompatible(this.version, payload?.version)
+          ) {
             this.actions = payload.actions;
           }
         }
@@ -1145,4 +1123,5 @@
   }
 
   return Manager;
-});
+
+})));

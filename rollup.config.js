@@ -6,11 +6,18 @@ export default [
   // browser-friendly UMD build
   {
     input: "src/core.js",
-    output: {
-      name: "Seldon",
-      file: pkg.browser,
-      format: "umd",
-    },
+    output: [
+      {
+        name: "Seldon",
+        file: pkg.browser,
+        format: "umd",
+      },
+      {
+        name: "Seldon",
+        file: pkg.module,
+        format: "es",
+      },
+    ],
     plugins: [
       resolve(), // so Rollup can find `ms`
       commonjs(), // so Rollup can convert `ms` to an ES module
