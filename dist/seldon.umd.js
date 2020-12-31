@@ -57,10 +57,13 @@
     return dist;
   }
 
-  function getEnergyArrival(srcId, synId, percentageSend = 25) {
+  function getEnergyArrival(srcId, syncId, percentageSend = 25) {
     const { energyCap } = df.getPlanetWithId(srcId);
     const payload = (energyCap * percentageSend) / 100;
-    return df.getEnergyArrivingForMove(srcId, synId, payload);
+    const sync = df.getPlanetWithId(syncId);
+    return (
+      df.getEnergyArrivingForMove(srcId, syncId, payload) / (sync.defense / 100)
+    );
   }
   function getEnergyArrivalAbs(srcId, syncId, energy) {
     return df.getEnergyArrivingForMove(srcId, syncId, energy);
@@ -74,6 +77,7 @@
     const owned = df.getMyPlanets();
 
     const ownedFiltered = owned
+      .filter((p) => p.locationId !== planetLocationId)
       .filter((p) => p.planetLevel <= levelLimit)
       .filter((p) => df.getDist(planetLocationId, p.locationId) < maxDistance);
     ownedFiltered.sort(
@@ -517,6 +521,7 @@
         ),
         {
           ROUTINE: c.FLOOD,
+          sent: false,
         }
       );
     });
@@ -948,6 +953,7 @@
           console.error(action);
           console.error(error);
         }
+        return;
       });
     }
     unswarm(planetId) {

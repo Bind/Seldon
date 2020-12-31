@@ -51,10 +51,13 @@ export function getDistance(a, b) {
   return dist;
 }
 
-export function getEnergyArrival(srcId, synId, percentageSend = 25) {
+export function getEnergyArrival(srcId, syncId, percentageSend = 25) {
   const { energyCap } = df.getPlanetWithId(srcId);
   const payload = (energyCap * percentageSend) / 100;
-  return df.getEnergyArrivingForMove(srcId, synId, payload);
+  const sync = df.getPlanetWithId(syncId);
+  return (
+    df.getEnergyArrivingForMove(srcId, syncId, payload) / (sync.defense / 100)
+  );
 }
 export function getEnergyArrivalAbs(srcId, syncId, energy) {
   return df.getEnergyArrivingForMove(srcId, syncId, energy);
@@ -68,6 +71,7 @@ export function findNearBy(
   const owned = df.getMyPlanets();
 
   const ownedFiltered = owned
+    .filter((p) => p.locationId !== planetLocationId)
     .filter((p) => p.planetLevel <= levelLimit)
     .filter((p) => df.getDist(planetLocationId, p.locationId) < maxDistance);
   ownedFiltered.sort(

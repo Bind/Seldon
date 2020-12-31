@@ -156,6 +156,7 @@ export class Manager {
         console.error(action);
         console.error(error);
       }
+      return;
     });
   }
   unswarm(planetId) {

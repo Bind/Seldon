@@ -1,4 +1,4 @@
-import c from "../constants";
+import c from "../constants.js";
 import { findWeapons } from "../utils/planet.js";
 import { createDelayedMove } from "../subroutines/delayedMove.js";
 import { secondsToMs } from "../utils/time.js";
@@ -48,6 +48,7 @@ export default function createFlood(
       ),
       {
         ROUTINE: c.FLOOD,
+        sent: false,
       }
     );
   });
