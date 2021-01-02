@@ -785,7 +785,7 @@ var version = /*#__PURE__*/Object.freeze({
   areVersionsCompatible: areVersionsCompatible
 });
 
-var index = /*#__PURE__*/Object.freeze({
+var utils = /*#__PURE__*/Object.freeze({
   __proto__: null,
   planet: planet,
   version: version,
@@ -1102,7 +1102,7 @@ class Manager {
         return;
       }
       const payload = JSON.parse(raw);
-      if (utils.version.areVersionsCompatible(this.version, payload?.version)) {
+      if (areVersionsCompatible(this.version, payload?.version)) {
         this.actions = payload.actions;
       }
     } catch (err) {
@@ -1112,4 +1112,4 @@ class Manager {
   }
 }
 
-export { Manager, index as utils };
+export { Manager, utils };

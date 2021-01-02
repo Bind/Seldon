@@ -791,7 +791,7 @@
     areVersionsCompatible: areVersionsCompatible
   });
 
-  var index = /*#__PURE__*/Object.freeze({
+  var utils = /*#__PURE__*/Object.freeze({
     __proto__: null,
     planet: planet,
     version: version,
@@ -1108,7 +1108,7 @@
           return;
         }
         const payload = JSON.parse(raw);
-        if (utils.version.areVersionsCompatible(this.version, payload?.version)) {
+        if (areVersionsCompatible(this.version, payload?.version)) {
           this.actions = payload.actions;
         }
       } catch (err) {
@@ -1119,7 +1119,7 @@
   }
 
   exports.Manager = Manager;
-  exports.utils = index;
+  exports.utils = utils;
 
   Object.defineProperty(exports, '__esModule', { value: true });
 
