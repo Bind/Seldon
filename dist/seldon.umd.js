@@ -510,7 +510,6 @@
       console.log(
         `all energy will land with ${totalLandingEnergy} at ${locationId}`
       );
-      return [];
     }
     return weapons.map((p) => {
       return createDelayedMove(
@@ -522,6 +521,7 @@
         {
           ROUTINE: c.FLOOD,
           sent: false,
+          arriveAt: ETA_MS,
         }
       );
     });
@@ -587,8 +587,8 @@
         addedEnergy
       )}`
       );
-      return [];
     }
+
     const launch = createChainedMove(
       srcId,
       targetId,
@@ -761,18 +761,6 @@
     }
   }
 
-  function checkPlanetUpgradeLevel(planet) {
-    return planet.upgradeState.reduce((acc, i) => acc + i, 0);
-  }
-
-  async function autoUpgrade(location) {
-    const planet = df.getPlanetById(location);
-    if (planet.planetLevel < 4 && checkPlanetUpgradeLevel(planet) < 4) {
-      //auto upgrade defense
-      df.upgrade(planet.locationId, 0);
-    }
-  }
-
   function parseVersionString(string) {
     const [major, minor, patch] = string.split(".");
     return { major, minor, patch };
@@ -873,9 +861,7 @@
         captured = await distributeSilver(p.locationId, 40);
       });
     }
-    harden() {
-      autoUpgrade();
-    }
+
     exploreDirective() {
       terminal.println("[CORE]: Running Directive Explore", 2);
       try {
@@ -894,8 +880,10 @@
       }
     }
     checkForOOMThreat() {
-      return (df.getUnconfirmedMoves().length =
-        df.getUnconfirmedUpgrades().length > 2);
+      return (
+        df.getUnconfirmedMoves().length > 2 &&
+        df.getUnconfirmedUpgrades().length > 2
+      );
     }
 
     async coreLoop() {
@@ -972,13 +960,19 @@
         console.log("[CORELOOP IS DEAD], flood ignored");
         return;
       }
-      createFlood(
+
+      let actions = createFlood(
         planetId,
         levelLimit,
         numOfPlanets,
         searchRangeSec,
         test
-      ).forEach((a) => this.createAction(a));
+      );
+      if (test) {
+        return actions;
+      } else {
+        actions.forEach((a) => this.createAction(a));
+      }
     }
     overload(
       srcId,
@@ -992,14 +986,20 @@
         console.log("[CORELOOP IS DEAD], flood ignored");
         return;
       }
-      createOverload(
+
+      let actions = createOverload(
         srcId,
         targetId,
         searchRangeSec,
         levelLimit,
         numOfPlanets,
         test
-      ).forEach((a) => this.createAction(a));
+      );
+      if (test) {
+        return actions;
+      } else {
+        actions.forEach((a) => this.createAction(a));
+      }
     }
 
     swarm(planetId, maxDistance = 5000, levelLimit = 5, numOfPlanets = 5) {

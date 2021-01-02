@@ -10,7 +10,6 @@ import {
 import { createSwarm, createFlood, createOverload } from "./routines/index.js";
 import { capturePlanets } from "./capturePlanets.js";
 import { distributeSilver } from "./distributeSilver.js";
-import { autoUpgrade } from "./upgrade.js";
 import { default as c } from "./constants.js";
 import * as utils from "./utils/index.js";
 async function asyncForEach(array, callback) {
@@ -76,9 +75,7 @@ export default class Manager {
       captured = await distributeSilver(p.locationId, 40);
     });
   }
-  harden() {
-    autoUpgrade();
-  }
+
   exploreDirective() {
     terminal.println("[CORE]: Running Directive Explore", 2);
     try {
@@ -97,8 +94,10 @@ export default class Manager {
     }
   }
   checkForOOMThreat() {
-    return (df.getUnconfirmedMoves().length =
-      df.getUnconfirmedUpgrades().length > 2);
+    return (
+      df.getUnconfirmedMoves().length > 2 &&
+      df.getUnconfirmedUpgrades().length > 2
+    );
   }
 
   async coreLoop() {
@@ -175,13 +174,19 @@ export default class Manager {
       console.log("[CORELOOP IS DEAD], flood ignored");
       return;
     }
-    createFlood(
+
+    let actions = createFlood(
       planetId,
       levelLimit,
       numOfPlanets,
       searchRangeSec,
       test
-    ).forEach((a) => this.createAction(a));
+    );
+    if (test) {
+      return actions;
+    } else {
+      actions.forEach((a) => this.createAction(a));
+    }
   }
   overload(
     srcId,
@@ -195,14 +200,20 @@ export default class Manager {
       console.log("[CORELOOP IS DEAD], flood ignored");
       return;
     }
-    createOverload(
+
+    let actions = createOverload(
       srcId,
       targetId,
       searchRangeSec,
       levelLimit,
       numOfPlanets,
       test
-    ).forEach((a) => this.createAction(a));
+    );
+    if (test) {
+      return actions;
+    } else {
+      actions.forEach((a) => this.createAction(a));
+    }
   }
 
   swarm(planetId, maxDistance = 5000, levelLimit = 5, numOfPlanets = 5) {

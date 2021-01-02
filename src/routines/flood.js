@@ -37,7 +37,6 @@ export default function createFlood(
     console.log(
       `all energy will land with ${totalLandingEnergy} at ${locationId}`
     );
-    return [];
   }
   return weapons.map((p) => {
     return createDelayedMove(
@@ -49,6 +48,7 @@ export default function createFlood(
       {
         ROUTINE: c.FLOOD,
         sent: false,
+        arriveAt: ETA_MS,
       }
     );
   });

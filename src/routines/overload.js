@@ -64,8 +64,8 @@ export default function createOverload(
         addedEnergy
       )}`
     );
-    return [];
   }
+
   const launch = createChainedMove(
     srcId,
     targetId,
