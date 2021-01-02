@@ -1,8 +1,8 @@
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
-  typeof define === 'function' && define.amd ? define(factory) :
-  (global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.Seldon = factory());
-}(this, (function () { 'use strict';
+  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
+  typeof define === 'function' && define.amd ? define(['exports'], factory) :
+  (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.Seldon = {}));
+}(this, (function (exports) { 'use strict';
 
   function checkNumInboundVoyages(planetId, from = "") {
     if (from == "") {
@@ -791,7 +791,7 @@
     areVersionsCompatible: areVersionsCompatible
   });
 
-  var utils = /*#__PURE__*/Object.freeze({
+  var index = /*#__PURE__*/Object.freeze({
     __proto__: null,
     planet: planet,
     version: version,
@@ -1108,7 +1108,7 @@
           return;
         }
         const payload = JSON.parse(raw);
-        if (areVersionsCompatible(this.version, payload?.version)) {
+        if (utils.version.areVersionsCompatible(this.version, payload?.version)) {
           this.actions = payload.actions;
         }
       } catch (err) {
@@ -1118,6 +1118,9 @@
     }
   }
 
-  return Manager;
+  exports.Manager = Manager;
+  exports.utils = index;
+
+  Object.defineProperty(exports, '__esModule', { value: true });
 
 })));

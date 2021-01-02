@@ -142,7 +142,7 @@ function modelEnergyNeededToTake(srcId, syncId) {
   return power_needed_to_send;
 }
 
-var planet = /*#__PURE__*/ Object.freeze({
+var planet = /*#__PURE__*/Object.freeze({
   __proto__: null,
   checkNumInboundVoyages: checkNumInboundVoyages,
   planetPower: planetPower$1,
@@ -155,7 +155,7 @@ var planet = /*#__PURE__*/ Object.freeze({
   findWeapons: findWeapons,
   planetIsRevealed: planetIsRevealed,
   waitingForPassengers: waitingForPassengers,
-  modelEnergyNeededToTake: modelEnergyNeededToTake,
+  modelEnergyNeededToTake: modelEnergyNeededToTake
 });
 
 const PIRATES = "0x0000000000000000000000000000000000000000";
@@ -322,11 +322,11 @@ function within5Minutes(before, now) {
   return (now - before) / 1000 / 60 < 5;
 }
 
-var time = /*#__PURE__*/ Object.freeze({
+var time = /*#__PURE__*/Object.freeze({
   __proto__: null,
   secondsToMs: secondsToMs,
   msToSeconds: msToSeconds,
-  within5Minutes: within5Minutes,
+  within5Minutes: within5Minutes
 });
 
 function delayedMove(action) {
@@ -421,7 +421,7 @@ async function chainedMove(action) {
     console.log("too soon, waiting for passengers to depart");
     return false;
   } else if (await waitingForPassengers(srcId, passengers)) {
-    console.log("Waiting for passengers to arrive'");
+    console.log("Waiting for passengers for passengers to arrive'");
     return false;
   } else {
     return send();
@@ -504,7 +504,6 @@ function createFlood(
     console.log(
       `all energy will land with ${totalLandingEnergy} at ${locationId}`
     );
-    return [];
   }
   return weapons.map((p) => {
     return createDelayedMove(
@@ -516,6 +515,7 @@ function createFlood(
       {
         ROUTINE: c.FLOOD,
         sent: false,
+        arriveAt: ETA_MS,
       }
     );
   });
@@ -581,8 +581,8 @@ function createOverload(
         addedEnergy
       )}`
     );
-    return [];
   }
+
   const launch = createChainedMove(
     srcId,
     targetId,
@@ -755,18 +755,6 @@ async function distributeSilver(fromId, maxDistributeEnergyPercent) {
   }
 }
 
-function checkPlanetUpgradeLevel(planet) {
-  return planet.upgradeState.reduce((acc, i) => acc + i, 0);
-}
-
-async function autoUpgrade(location) {
-  const planet = df.getPlanetById(location);
-  if (planet.planetLevel < 4 && checkPlanetUpgradeLevel(planet) < 4) {
-    //auto upgrade defense
-    df.upgrade(planet.locationId, 0);
-  }
-}
-
 function parseVersionString(string) {
   const [major, minor, patch] = string.split(".");
   return { major, minor, patch };
@@ -792,16 +780,16 @@ function areVersionsCompatible(newVersion, oldVersion) {
   }
 }
 
-var version = /*#__PURE__*/ Object.freeze({
+var version = /*#__PURE__*/Object.freeze({
   __proto__: null,
-  areVersionsCompatible: areVersionsCompatible,
+  areVersionsCompatible: areVersionsCompatible
 });
 
-var utils = /*#__PURE__*/ Object.freeze({
+var index = /*#__PURE__*/Object.freeze({
   __proto__: null,
   planet: planet,
   version: version,
-  time: time,
+  time: time
 });
 
 async function asyncForEach(array, callback) {
@@ -887,7 +875,8 @@ class Manager {
   }
   checkForOOMThreat() {
     return (
-      df.getUnconfirmedMoves().length == df.getUnconfirmedUpgrades().length > 2
+      df.getUnconfirmedMoves().length > 2 &&
+      df.getUnconfirmedUpgrades().length > 2
     );
   }
 
@@ -965,13 +954,19 @@ class Manager {
       console.log("[CORELOOP IS DEAD], flood ignored");
       return;
     }
-    createFlood(
+
+    let actions = createFlood(
       planetId,
       levelLimit,
       numOfPlanets,
       searchRangeSec,
       test
-    ).forEach((a) => this.createAction(a));
+    );
+    if (test) {
+      return actions;
+    } else {
+      actions.forEach((a) => this.createAction(a));
+    }
   }
   overload(
     srcId,
@@ -985,14 +980,20 @@ class Manager {
       console.log("[CORELOOP IS DEAD], flood ignored");
       return;
     }
-    createOverload(
+
+    let actions = createOverload(
       srcId,
       targetId,
       searchRangeSec,
       levelLimit,
       numOfPlanets,
       test
-    ).forEach((a) => this.createAction(a));
+    );
+    if (test) {
+      return actions;
+    } else {
+      actions.forEach((a) => this.createAction(a));
+    }
   }
 
   swarm(planetId, maxDistance = 5000, levelLimit = 5, numOfPlanets = 5) {
@@ -1101,7 +1102,7 @@ class Manager {
         return;
       }
       const payload = JSON.parse(raw);
-      if (areVersionsCompatible(this.version, payload?.version)) {
+      if (utils.version.areVersionsCompatible(this.version, payload?.version)) {
         this.actions = payload.actions;
       }
     } catch (err) {
@@ -1111,4 +1112,4 @@ class Manager {
   }
 }
 
-export default Manager;
+export { Manager, index as utils };

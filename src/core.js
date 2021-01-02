@@ -11,13 +11,13 @@ import { createSwarm, createFlood, createOverload } from "./routines/index.js";
 import { capturePlanets } from "./capturePlanets.js";
 import { distributeSilver } from "./distributeSilver.js";
 import { default as c } from "./constants.js";
-import * as utils from "./utils/index.js";
+export * as utils from "./utils/index.js";
 async function asyncForEach(array, callback) {
   for (let index = 0; index < array.length; index++) {
     await callback(array[index], index, array);
   }
 }
-export default class Manager {
+export class Manager {
   actions = [];
   intervalId = "";
   version = "0.0.1";
