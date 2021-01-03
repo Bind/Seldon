@@ -64,16 +64,25 @@ export class Manager {
     const owned = df.getMyPlanets();
     let captured = [];
     owned.forEach(async (p) => {
-      captured = await capturePlanets(p.locationId, 4, 50, captured);
+      captured = await capturePlanets(p.locationId, 3, 50, captured);
     });
   }
 
-  distribute() {
+  distribute(minPlanetLevel = 4) {
     const owned = df.getMyPlanets().filter((p) => p.silverGrowth > 0);
     let captured = [];
     owned.forEach(async (p) => {
-      captured = await distributeSilver(p.locationId, 40);
+      captured = await distributeSilver(p.locationId, 40, minPlanetLevel);
     });
+  }
+
+  upgrade() {
+    const getNextUpgrade = (planet) => {
+      return planet.upgradeState[0] < 2 ? 0 : 1;
+    };
+    df.getMyPlanets()
+      .filter((p) => df.entityStore.planetCanUpgrade(p))
+      .forEach((p) => df.upgrade(p.locationId, getNextUpgrade(p)));
   }
 
   exploreDirective() {

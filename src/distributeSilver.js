@@ -12,12 +12,16 @@ function isAsteroid(p) {
   return p.silverGrowth > 0;
 }
 
-export async function distributeSilver(fromId, maxDistributeEnergyPercent) {
+export async function distributeSilver(
+  fromId,
+  maxDistributeEnergyPercent,
+  minPlanetLevel = 4
+) {
   const planet = df.getPlanetWithId(fromId);
   const candidates_ = df
     .getPlanetsInRange(fromId, maxDistributeEnergyPercent)
     .filter((p) => p.owner === df.getAccount())
-    .filter((p) => p.planetLevel >= 4)
+    .filter((p) => p.planetLevel >= minPlanetLevel)
     .filter((p) => !isAsteroid(p))
     .map((to) => {
       const fromLoc = df.getLocationOfPlanet(fromId);
