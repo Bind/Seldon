@@ -48,7 +48,7 @@ export default function pester(
     );
 
     //send attack
-    df.terminal.current.jsShell(
+    df.terminal.current.printShellLn(
       `df.move('${
         source.locationId
       }', '${opponentsPlanetLocationsId}', ${FORCES}, ${0})`

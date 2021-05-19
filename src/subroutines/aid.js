@@ -28,7 +28,7 @@ export default function aid(
     df.terminal.current.println("[AID]: LAUNCHING AID FROM INTERVAL", 4);
     //send attack
 
-    df.terminal.current.jsShell(
+    df.terminal.current.printShellLn(
       `df.move('${
         source.locationId
       }', '${syncPlanetLocationId}', ${FORCES}, ${0})`

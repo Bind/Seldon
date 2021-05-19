@@ -52,7 +52,7 @@ function explore(
     );
 
     //send attack
-    df.terminal.current.jsShell(
+    df.terminal.current.printShellLn(
       `df.move('${explorer.locationId}', '${
         target.locationId
       }', ${FORCES}, ${0})`

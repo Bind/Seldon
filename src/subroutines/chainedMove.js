@@ -24,7 +24,7 @@ export default async function chainedMove(action) {
     df.terminal.current.println("[chained]: launching attack", 4);
 
     //send attack
-    df.terminal.current.jsShell(
+    df.terminal.current.printShellLn(
       `df.move('${srcId}', '${syncId}', ${FORCES}, ${0})`
     );
     df.move(srcId, syncId, FORCES, 0);

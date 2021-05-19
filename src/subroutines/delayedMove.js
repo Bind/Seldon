@@ -26,7 +26,7 @@ export default function delayedMove(action) {
     );
 
     //send attack
-    df.terminal.current.jsShell(
+    df.terminal.current.printShellLn(
       `df.move('${srcId}', '${syncId}', ${FORCES}, ${0})`
     );
     df.move(srcId, syncId, FORCES, 0);
