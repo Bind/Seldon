@@ -25,10 +25,10 @@ export default function aid(
   const FORCES = Math.floor((source.energyCap * percentageSend) / 100);
   if (FUZZY_ENERGY > TRIGGER_AMOUNT) {
     console.log("[AID]: LAUNCHING AID FROM INTERVAL");
-    terminal.println("[AID]: LAUNCHING AID FROM INTERVAL", 4);
+    df.terminal.current.println("[AID]: LAUNCHING AID FROM INTERVAL", 4);
     //send attack
 
-    terminal.jsShell(
+    df.terminal.current.jsShell(
       `df.move('${
         source.locationId
       }', '${syncPlanetLocationId}', ${FORCES}, ${0})`

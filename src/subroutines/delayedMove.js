@@ -20,10 +20,15 @@ export default function delayedMove(action) {
 
   if (sendAt < new Date().getTime()) {
     console.log(`[delay]: ${source.locationId} attack launch`);
-    terminal.println(`[delay]: ${source.locationId} attack launch`, 4);
+    df.terminal.current.println(
+      `[delay]: ${source.locationId} attack launch`,
+      4
+    );
 
     //send attack
-    terminal.jsShell(`df.move('${srcId}', '${syncId}', ${FORCES}, ${0})`);
+    df.terminal.current.jsShell(
+      `df.move('${srcId}', '${syncId}', ${FORCES}, ${0})`
+    );
     df.move(srcId, syncId, FORCES, 0);
     return true;
   } else {

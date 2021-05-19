@@ -86,7 +86,7 @@ export class Manager {
   }
 
   exploreDirective() {
-    terminal.println("[CORE]: Running Directive Explore", 2);
+    df.terminal.current.println("[CORE]: Running Directive Explore", 2);
     try {
       const busy = this.actions
         .filter((a) => a.type == this.c.PESTER)
@@ -111,7 +111,7 @@ export class Manager {
 
   async coreLoop() {
     if (this.actions.length > 0) {
-      terminal.println("[CORE]: Running Subroutines", 2);
+      df.terminal.current.println("[CORE]: Running Subroutines", 2);
     }
     asyncForEach(this.actions, async (action) => {
       if (this.checkForOOMThreat()) {

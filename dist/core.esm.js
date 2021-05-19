@@ -211,10 +211,13 @@ function pester(
 
     const FORCES = Math.floor((source.energyCap * overflow_send) / 100);
     console.log(`[pester]: launching attack from ${source.locationId}`);
-    terminal.println(`[pester]: launching attack from ${source.locationId}`, 4);
+    df.terminal.current.println(
+      `[pester]: launching attack from ${source.locationId}`,
+      4
+    );
 
     //send attack
-    terminal.jsShell(
+    df.terminal.current.jsShell(
       `df.move('${
         source.locationId
       }', '${opponentsPlanetLocationsId}', ${FORCES}, ${0})`
@@ -265,7 +268,7 @@ function explore(
   takeable.sort((a, b) => b.planetLevel - a.planetLevel);
   if (takeable.length > 0) {
     console.log("[explore]: launching exploration");
-    terminal.println("[explore]: launching exploration", 4);
+    df.terminal.current.println("[explore]: launching exploration", 4);
     const target = takeable[0];
     const FORCES = Math.floor(
       df.getEnergyNeededForMove(
@@ -276,7 +279,7 @@ function explore(
     );
 
     //send attack
-    terminal.jsShell(
+    df.terminal.current.jsShell(
       `df.move('${explorer.locationId}', '${
         target.locationId
       }', ${FORCES}, ${0})`
@@ -286,7 +289,7 @@ function explore(
     console.error(
       `[explore]: ${explorer.id} has not valid targets consider increasing percentageSend`
     );
-    terminal.println(
+    df.terminal.current.println(
       `[explore]: ${explorer.id} has not valid targets consider increasing percentageSend`,
       3
     );
@@ -348,10 +351,15 @@ function delayedMove(action) {
 
   if (sendAt < new Date().getTime()) {
     console.log(`[delay]: ${source.locationId} attack launch`);
-    terminal.println(`[delay]: ${source.locationId} attack launch`, 4);
+    df.terminal.current.println(
+      `[delay]: ${source.locationId} attack launch`,
+      4
+    );
 
     //send attack
-    terminal.jsShell(`df.move('${srcId}', '${syncId}', ${FORCES}, ${0})`);
+    df.terminal.current.jsShell(
+      `df.move('${srcId}', '${syncId}', ${FORCES}, ${0})`
+    );
     df.move(srcId, syncId, FORCES, 0);
     return true;
   } else {
@@ -387,14 +395,8 @@ function createDelayedMove(
 }
 
 async function chainedMove(action) {
-  const {
-    srcId,
-    syncId,
-    passengers,
-    departure,
-    percentageSend,
-    createdAt,
-  } = action.payload;
+  const { srcId, syncId, passengers, departure, percentageSend, createdAt } =
+    action.payload;
 
   const match = df.getMyPlanets().filter((t) => t.locationId == srcId);
   if (match.length == 0) {
@@ -408,10 +410,12 @@ async function chainedMove(action) {
   }
   const send = () => {
     console.log("[chained]: launching attack");
-    terminal.println("[chained]: launching attack", 4);
+    df.terminal.current.println("[chained]: launching attack", 4);
 
     //send attack
-    terminal.jsShell(`df.move('${srcId}', '${syncId}', ${FORCES}, ${0})`);
+    df.terminal.current.jsShell(
+      `df.move('${srcId}', '${syncId}', ${FORCES}, ${0})`
+    );
     df.move(srcId, syncId, FORCES, 0);
     return true;
   };
@@ -870,7 +874,7 @@ class Manager {
   }
 
   exploreDirective() {
-    terminal.println("[CORE]: Running Directive Explore", 2);
+    df.terminal.current.println("[CORE]: Running Directive Explore", 2);
     try {
       const busy = this.actions
         .filter((a) => a.type == this.c.PESTER)
@@ -895,7 +899,7 @@ class Manager {
 
   async coreLoop() {
     if (this.actions.length > 0) {
-      terminal.println("[CORE]: Running Subroutines", 2);
+      df.terminal.current.println("[CORE]: Running Subroutines", 2);
     }
     asyncForEach(this.actions, async (action) => {
       if (this.checkForOOMThreat()) {

@@ -43,7 +43,7 @@ function explore(
     );
   if (takable.length > 0) {
     console.log("[PESTER]: LAUNCHING ATTACK FROM INTERVAL");
-    terminal.println("[PESTER]: LAUNCHING ATTACK FROM INTERVAL", 4);
+    df.terminal.current.println("[PESTER]: LAUNCHING ATTACK FROM INTERVAL", 4);
     const target = takable[0];
     const FORCES = getEnergyNeededForMove(
       ownPlanetId,
@@ -52,7 +52,7 @@ function explore(
     );
 
     //send attack
-    terminal.jsShell(
+    df.terminal.current.jsShell(
       `df.move('${explorer.locationId}', '${
         target.locationId
       }', ${FORCES}, ${0})`
@@ -62,7 +62,7 @@ function explore(
     console.error(
       `[EXPLORER]: ${explorer.id} has not valid targets consider increasing percentageSend`
     );
-    terminal.println(
+    df.terminal.current.println(
       `[EXPLORER]: ${explorer.id} has not valid targets consider increasing percentageSend`,
       3
     );

@@ -42,10 +42,13 @@ export default function pester(
 
     const FORCES = Math.floor((source.energyCap * overflow_send) / 100);
     console.log(`[pester]: launching attack from ${source.locationId}`);
-    terminal.println(`[pester]: launching attack from ${source.locationId}`, 4);
+    df.terminal.current.println(
+      `[pester]: launching attack from ${source.locationId}`,
+      4
+    );
 
     //send attack
-    terminal.jsShell(
+    df.terminal.current.jsShell(
       `df.move('${
         source.locationId
       }', '${opponentsPlanetLocationsId}', ${FORCES}, ${0})`

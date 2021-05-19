@@ -6,14 +6,8 @@ import {
 import { within5Minutes } from "../utils/time.js";
 
 export default async function chainedMove(action) {
-  const {
-    srcId,
-    syncId,
-    passengers,
-    departure,
-    percentageSend,
-    createdAt,
-  } = action.payload;
+  const { srcId, syncId, passengers, departure, percentageSend, createdAt } =
+    action.payload;
 
   const match = df.getMyPlanets().filter((t) => t.locationId == srcId);
   if (match.length == 0) {
@@ -27,10 +21,12 @@ export default async function chainedMove(action) {
   }
   const send = () => {
     console.log("[chained]: launching attack");
-    terminal.println("[chained]: launching attack", 4);
+    df.terminal.current.println("[chained]: launching attack", 4);
 
     //send attack
-    terminal.jsShell(`df.move('${srcId}', '${syncId}', ${FORCES}, ${0})`);
+    df.terminal.current.jsShell(
+      `df.move('${srcId}', '${syncId}', ${FORCES}, ${0})`
+    );
     df.move(srcId, syncId, FORCES, 0);
     return true;
   };

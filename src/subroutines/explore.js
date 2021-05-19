@@ -27,7 +27,7 @@ export default function explore(
   takeable.sort((a, b) => b.planetLevel - a.planetLevel);
   if (takeable.length > 0) {
     console.log("[explore]: launching exploration");
-    terminal.println("[explore]: launching exploration", 4);
+    df.terminal.current.println("[explore]: launching exploration", 4);
     const target = takeable[0];
     const FORCES = Math.floor(
       df.getEnergyNeededForMove(
@@ -38,7 +38,7 @@ export default function explore(
     );
 
     //send attack
-    terminal.jsShell(
+    df.terminal.current.jsShell(
       `df.move('${explorer.locationId}', '${
         target.locationId
       }', ${FORCES}, ${0})`
@@ -48,7 +48,7 @@ export default function explore(
     console.error(
       `[explore]: ${explorer.id} has not valid targets consider increasing percentageSend`
     );
-    terminal.println(
+    df.terminal.current.println(
       `[explore]: ${explorer.id} has not valid targets consider increasing percentageSend`,
       3
     );
