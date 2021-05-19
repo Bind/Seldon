@@ -14,6 +14,7 @@ class PlanetConduitNode {
     super(planet);
   }
   getEnergyForMove(targetId) {
+    //  getEnergyNeedForMove is Deprecated
     return df.getEnergyNeedForMove(
       this.planet.locationId,
       targetId,

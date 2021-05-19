@@ -121,7 +121,9 @@ export function planetIsRevealed(planetId) {
   return !!contractsAPI.getLocationOfPlanet(planetId);
 }
 export async function waitingForPassengers(locationId, passengersArray) {
-  const arrivals = await df.contractsAPI.getArrivalsForPlanet(locationId);
+  const arrivals = await df.contractsAPI.coreContract.getArrivalsForPlanet(
+    locationId
+  );
   return (
     arrivals
       .filter((a) => a.player == df.account)

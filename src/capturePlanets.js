@@ -45,7 +45,7 @@ export async function capturePlanets(
       const candidate = candidates_[i++][0];
 
       // Check if has incoming moves from another planet to safe
-      const arrivals = await df.contractsAPI.getArrivalsForPlanet(
+      const arrivals = await df.contractsAPI.coreContract.getArrivalsForPlanet(
         candidate.locationId
       );
       if (arrivals.length !== 0) {
