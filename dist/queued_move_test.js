@@ -1,8 +1,6 @@
 import PromiseQueue from 'https://cdn.skypack.dev/p-queue';
 import Serde  from 'https://cdn.skypack.dev/@darkforest_eth/serde';
 
-const LocationTypeUtils = Serde.location;
-const ArtifactTypeUtils = Serde.artifact;
 let moveSnarkQueue;
 if (window.moveSnarkQueue === undefined) {
   moveSnarkQueue = new PromiseQueue({ concurrency: 1 });
@@ -95,7 +93,7 @@ async function send(actionId, snarkArgs) {
      
 
       if (txIntent.artifact) {
-        args[ZKArgIdx.DATA][MoveArgIdxs.ARTIFACT_SENT] = ArtifactTypeUtils.artifactIdToDecStr(txIntent.artifact);
+        args[ZKArgIdx.DATA][MoveArgIdxs.ARTIFACT_SENT] = Serde.artifactIdToDecStr(txIntent.artifact);
       }
 
     const tx = df.contractsAPI.txRequestExecutor.makeRequest(
@@ -120,10 +118,10 @@ async function send(actionId, snarkArgs) {
       type: 'MOVE',
       txHash: (await tx.submitted).hash,
       sentAtTimestamp: Math.floor(Date.now() / 1000),
-      from: LocationTypeUtils.locationIdFromDecStr(
+      from: Serde.locationIdFromDecStr(
         args[ZKArgIdx.DATA][MoveArgIdxs.FROM_ID]
       ),
-      to: LocationTypeUtils.locationIdFromDecStr(
+      to: Serde.locationIdFromDecStr(
         args[ZKArgIdx.DATA][MoveArgIdxs.TO_ID]
       ),
       forces: forcesFloat / contractPrecision,
