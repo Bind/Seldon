@@ -1,6 +1,7 @@
 import PromiseQueue from 'https://cdn.skypack.dev/p-queue';
-import {location as LocationTypeUtils} from 'https://cdn.skypack.dev/@darkforest_eth/serde';
+import Serde  from 'https://cdn.skypack.dev/@darkforest_eth/serde';
 
+const LocationTypeUtils = Serde.location
 let moveSnarkQueue;
 if (window.moveSnarkQueue === undefined) {
   moveSnarkQueue = new PromiseQueue({ concurrency: 1 });
