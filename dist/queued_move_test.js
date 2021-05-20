@@ -92,7 +92,7 @@ async function send(actionId, snarkArgs) {
     ];
      
 
-      if (txIntent.artifact) {
+      if (txIntent?.artifact) {
         args[ZKArgIdx.DATA][MoveArgIdxs.ARTIFACT_SENT] = Serde.artifactIdToDecStr(txIntent.artifact);
       }
 
@@ -128,7 +128,7 @@ async function send(actionId, snarkArgs) {
       silver: silverFloat / contractPrecision,
     };
 
-    if (artifactMoved) unminedMoveTx.artifact = txIntent.artifact;
+    if (txIntent?.artifact) unminedMoveTx.artifact = txIntent.artifact;
 
     onTxSubmit(unminedMoveTx);
 
