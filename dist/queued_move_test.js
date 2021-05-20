@@ -1,7 +1,8 @@
 import PromiseQueue from 'https://cdn.skypack.dev/p-queue';
 import Serde  from 'https://cdn.skypack.dev/@darkforest_eth/serde';
 
-const LocationTypeUtils = Serde.location
+const LocationTypeUtils = Serde.location;
+const ArtifactTypeUtils = Serde.artifact;
 let moveSnarkQueue;
 if (window.moveSnarkQueue === undefined) {
   moveSnarkQueue = new PromiseQueue({ concurrency: 1 });
@@ -87,8 +88,15 @@ async function send(actionId, snarkArgs) {
         ...snarkArgs[ZKArgIdx.DATA],
         (txIntent.forces * contractPrecision).toString(),
         (txIntent.silver * contractPrecision).toString(),
+        "0"
       ],
+
     ];
+     
+
+      if (txIntent.artifact) {
+        args[ZKArgIdx.DATA][MoveArgIdxs.ARTIFACT_SENT] = ArtifactTypeUtils.artifactIdToDecStr(txIntent.artifact);
+      }
 
     const tx = df.contractsAPI.txRequestExecutor.makeRequest(
       'MOVE',
@@ -121,6 +129,8 @@ async function send(actionId, snarkArgs) {
       forces: forcesFloat / contractPrecision,
       silver: silverFloat / contractPrecision,
     };
+
+    if (artifactMoved) unminedMoveTx.artifact = txIntent.artifact;
 
     onTxSubmit(unminedMoveTx);
 
@@ -164,7 +174,7 @@ async function snark(actionId, oldX, oldY, newX, newY) {
 }
 
 // Kinda like GameManager.move() but without localstorage and using our queue
-export function move(from, to, forces, silver) {
+export function move(from, to, forces, silver, artifactMoved) {
   const oldLocation = df.entityStore.getLocationOfPlanet(from);
   const newLocation = df.entityStore.getLocationOfPlanet(to);
   if (!oldLocation) {
@@ -203,6 +213,20 @@ export function move(from, to, forces, silver) {
     forces: shipsMoved,
     silver: silverMoved,
   };
+
+  if (artifactMoved) {
+    const artifact = this.entityStore.getArtifactById(artifactMoved);
+    if (!artifact) {
+      throw new Error("couldn't find this artifact");
+    }
+    if (isActivated(artifact)) {
+      throw new Error("can't move an activated artifact");
+    }
+    if (!oldPlanet.heldArtifactIds.includes(artifactMoved)) {
+      throw new Error("that artifact isn't on this planet!");
+    }
+    txIntent.artifact = artifactMoved;
+  }
 
   df.handleTxIntent(txIntent);
 
