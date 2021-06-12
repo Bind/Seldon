@@ -1,0 +1,10 @@
+import { Artifact, QueuedArrival, Planet, Upgrade } from '@darkforest_eth/types';
+import { ContractConstants } from '../../_types/darkforest/api/ContractsAPITypes';
+export declare const blocksLeftToProspectExpiration: (currentBlockNumber: number, prospectedBlockNumber?: number | undefined) => number;
+export declare const prospectExpired: (currentBlockNumber: number, prospectedBlockNumber: number) => boolean;
+export declare const isFindable: (planet: Planet, currentBlockNumber?: number | undefined) => boolean;
+export declare const isProspectable: (planet: Planet) => boolean;
+export declare const enoughEnergyToProspect: (p: Planet) => boolean;
+export declare const updatePlanetToTime: (planet: Planet, planetArtifacts: Artifact[], atTimeMillis: number, contractConstants: ContractConstants, setPlanet?: (p: Planet) => void) => void;
+export declare const applyUpgrade: (planet: Planet, upgrade: Upgrade, unApply?: boolean) => void;
+export declare const arrive: (toPlanet: Planet, artifactsOnPlanet: Artifact[], arrival: QueuedArrival, contractConstants: ContractConstants) => void;

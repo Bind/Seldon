@@ -1,0 +1,10 @@
+import { Artifact, Biome, ArtifactRarity, ArtifactType } from '@darkforest_eth/types';
+export declare const artifactBiomeAndName: (artifact: Artifact | undefined) => string;
+export declare const dateMintedAt: (artifact: Artifact | undefined) => string;
+export declare const artifactName: (artifact: Artifact | undefined) => string;
+export declare const mockArtifact: (rarity: ArtifactRarity, artifactType?: ArtifactType, planetBiome?: Biome) => Artifact;
+export declare const mockArtifactWithRarity: (rarity: ArtifactRarity, artifactType?: ArtifactType, planetBiome?: Biome) => Artifact;
+export declare const mockCommon: Artifact;
+export declare const mockRare: Artifact;
+export declare const mockEpic: Artifact;
+export declare const mockLegendary: Artifact;

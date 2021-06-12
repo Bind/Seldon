@@ -1,0 +1,10 @@
+import { LSMBucket, LSMChunkData } from '../../_types/darkforest/api/ChunkStoreTypes';
+import { Rectangle, ExploredChunkData } from '../../_types/global/GlobalTypes';
+import { WorldCoords } from '@darkforest_eth/types';
+export declare const getBucket: (chunk: Rectangle) => LSMBucket;
+export declare const getChunkKey: (chunkLoc: Rectangle) => string;
+export declare const toLSMChunk: (chunk: ExploredChunkData) => LSMChunkData;
+export declare const toExploredChunk: (chunk: LSMChunkData) => ExploredChunkData;
+export declare const getSiblingLocations: (chunkLoc: Rectangle) => [Rectangle, Rectangle, Rectangle];
+export declare const getChunkOfSideLength: (coords: WorldCoords, sideLength: number) => Rectangle;
+export declare const addToChunkMap: (map: Map<string, ExploredChunkData>, chunk: ExploredChunkData, includePlanets?: boolean, onAdd?: ((arg: ExploredChunkData) => void) | undefined, onRemove?: ((arg: ExploredChunkData) => void) | undefined, maxChunkSize?: number | undefined) => void;
