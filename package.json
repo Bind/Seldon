@@ -5,13 +5,15 @@
   "target": "ESNext",
   "dependencies": {
     "@darkforest_eth/types": "^6.1.15",
+    "esbuild": "^0.12.8",
     "preact": "^10.5.13"
   },
   "devDependencies": {
     "@projectsophon/df-plugin-dev-server": "^1.1.0"
   },
   "scripts": {
-    "dev": "df-plugin-dev-server"
+    "dev": "df-plugin-dev-server",
+    "build": "esbuild plugins/* --bundle --target=es2020 --outdir=dist"
   },
   "files": [
     "dist"
