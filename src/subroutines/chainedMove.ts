@@ -1,6 +1,6 @@
 import { LocationId } from "@darkforest_eth/types";
-import GameManager from "../../client_declarations/src/Backend/GameLogic/GameManager";
-import GameUIManager from "../../client_declarations/src/Backend/GameLogic/GameUIManager";
+import GameManager from "@df/GameManager";
+import GameUIManager from "@df/GameUIManager";
 declare const df: GameManager;
 declare const ui: GameUIManager;
 import { default as c } from "../constants.js";

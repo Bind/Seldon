@@ -1,5 +1,5 @@
-import GameManager from "../../client_declarations/src/Backend/GameLogic/GameManager";
-import GameUIManager from "../../client_declarations/src/Backend/GameLogic/GameUIManager";
+import GameManager from "@df/GameManager";
+import GameUIManager from "@df/GameUIManager";
 
 export declare const df: GameManager;
 export declare const ui: GameUIManager;
